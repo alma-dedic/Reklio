@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Ostalo
+.env
+.idea/
