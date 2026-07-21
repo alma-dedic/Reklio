@@ -1,0 +1,33 @@
+<div class="auth-shell">
+  <aside class="brand">
+    <div>
+      <div class="brand__logo">
+        <span class="brand__mark">R</span>
+        <span class="brand__name">Reklio</span>
+      </div>
+      <h1 class="brand__heading">{{ heading() }}</h1>
+      <p class="brand__text">{{ subheading() }}</p>
+    </div>
+
+    <div class="scan">
+      <div class="scan__file">racun_0192.jpg</div>
+      <div class="scan__frame">
+        <div class="scan__line"></div>
+        <div class="scan__tag scan__tag--amount">Iznos: 129,90 KM</div>
+        <div class="scan__tag scan__tag--date">Datum potvrđen</div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span class="chip">OCR</span>
+      <span class="chip">Computer vision</span>
+      <span class="chip">RAG</span>
+    </div>
+  </aside>
+
+  <section class="form-panel">
+    <div class="form-inner">
+      <ng-content></ng-content>
+    </div>
+  </section>
+</div>

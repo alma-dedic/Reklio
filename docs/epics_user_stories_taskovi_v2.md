@@ -61,11 +61,11 @@ podnositi reklamacije; kao operater, želim posebnu ulogu, da bih pristupio
 operaterskom panelu.
 
 **Taskovi:**
-- [ ] T1.1 — ASP.NET Core Identity + JWT bearer, token servis iza `IJwtTokenService`
-- [ ] T1.2 — `POST /api/auth/register` — bez email potvrde, nalog odmah aktivan. Duplikat emaila → 409
-- [ ] T1.3 — `RegisterRequest` **nema** polje `Role`; kontroler fiksno dodjeljuje `Customer` — uloga se nikad ne prima od klijenta
-- [ ] T1.4 — Seeder: uloge + test nalozi (`operater@reklio.ba` / `kupac@reklio.ba`)
-- [ ] T1.5 — Angular: login/registracija (navy mockup sa scan animacijom u lijevom panelu), `AuthService`, JWT interceptor, `authGuard` + `roleGuard`
+- [x] T1.1 — ASP.NET Core Identity + JWT bearer, token servis iza `IJwtTokenService`
+- [x] T1.2 — `POST /api/auth/register` — bez email potvrde, nalog odmah aktivan. Duplikat emaila → 409
+- [x] T1.3 — `RegisterRequest` **nema** polje `Role`; kontroler fiksno dodjeljuje `Customer` — uloga se nikad ne prima od klijenta
+- [x] T1.4 — Seeder: uloge + test nalozi (`operater@reklio.ba` / `kupac@reklio.ba`)
+- [x] T1.5 — Angular: login/registracija (navy mockup sa scan animacijom u lijevom panelu), `AuthService`, JWT interceptor, `authGuard` + `roleGuard`
 
 ---
 

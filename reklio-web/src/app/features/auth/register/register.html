@@ -1,0 +1,85 @@
+<app-auth-layout
+  heading="Napravite nalog za par sekundi."
+  subheading="Nalog vam treba samo da prijavite i pratite svoje reklamacije - bez potvrde putem emaila."
+>
+  <h2 class="auth-title">Registracija</h2>
+  <p class="auth-subtitle">Unesite podatke da napravite nalog.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    @if (errorMessage()) {
+      <div class="auth-error">{{ errorMessage() }}</div>
+    }
+
+    <label class="auth-field">
+      <span class="auth-field__label">Ime i prezime</span>
+      <input
+        type="text"
+        class="auth-field__input"
+        placeholder="Amina Karić"
+        formControlName="fullName"
+        [class.is-invalid]="form.controls.fullName.touched && form.controls.fullName.invalid"
+      />
+      @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+        <span class="auth-field__error">Unesite ime i prezime.</span>
+      }
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field__label">Email</span>
+      <input
+        type="email"
+        class="auth-field__input"
+        placeholder="ime@primjer.com"
+        formControlName="email"
+        [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <span class="auth-field__error">Unesite ispravan email.</span>
+      }
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field__label">Lozinka</span>
+      <input
+        type="password"
+        class="auth-field__input"
+        placeholder="••••••••"
+        formControlName="password"
+        [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+      />
+      <span
+        [class]="
+          form.controls.password.touched && form.controls.password.invalid
+            ? 'auth-field__error'
+            : 'auth-field__hint'
+        "
+      >
+        Najmanje 8 znakova, veliko i malo slovo, broj i specijalni znak.
+      </span>
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field__label">Potvrda lozinke</span>
+      <input
+        type="password"
+        class="auth-field__input"
+        placeholder="••••••••"
+        formControlName="confirmPassword"
+        [class.is-invalid]="form.controls.confirmPassword.touched && form.hasError('passwordMismatch')"
+      />
+      @if (form.controls.confirmPassword.touched && form.hasError('passwordMismatch')) {
+        <span class="auth-field__error">Lozinke se ne poklapaju.</span>
+      }
+    </label>
+
+    <button type="submit" class="auth-submit" [disabled]="submitting()">
+      {{ submitting() ? 'Kreiranje...' : 'Napravite nalog' }}
+    </button>
+  </form>
+
+  <div class="auth-divider">ili</div>
+
+  <div class="auth-switch">
+    Već imate nalog? <a routerLink="/login">Prijavite se →</a>
+  </div>
+</app-auth-layout>

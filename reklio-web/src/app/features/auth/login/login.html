@@ -1,0 +1,52 @@
+<app-auth-layout
+  heading="Reklamacije, riješene pametnije."
+  subheading="AI analizira dokaze i garancijske uslove, a operater potvrđuje finalnu odluku."
+>
+  <h2 class="auth-title">Prijava</h2>
+  <p class="auth-subtitle">Unesite podatke da nastavite.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    @if (errorMessage()) {
+      <div class="auth-error">{{ errorMessage() }}</div>
+    }
+
+    <label class="auth-field">
+      <span class="auth-field__label">Email</span>
+      <input
+        type="email"
+        class="auth-field__input"
+        placeholder="ime@primjer.com"
+        formControlName="email"
+        [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <span class="auth-field__error">Unesite ispravan email.</span>
+      }
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field__label">Lozinka</span>
+      <input
+        type="password"
+        class="auth-field__input"
+        placeholder="••••••••"
+        formControlName="password"
+        [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+      />
+    </label>
+
+    <div class="auth-forgot">
+      <a href="#" (click)="$event.preventDefault()">Zaboravljena lozinka?</a>
+    </div>
+
+    <button type="submit" class="auth-submit" [disabled]="submitting()">
+      {{ submitting() ? 'Prijava...' : 'Prijavite se' }}
+    </button>
+  </form>
+
+  <div class="auth-divider">ili</div>
+
+  <div class="auth-switch">
+    Nemate nalog? <a routerLink="/register">Registrujte se →</a>
+  </div>
+</app-auth-layout>
