@@ -87,12 +87,12 @@ validacija i fraud detekcija bile moguće.
 | `Notification` | id, user_id (FK), claim_id (FK), message, is_read |
 
 **Taskovi:**
-- [ ] T2.1 — EF Core entiteti prema tabeli gore
-- [ ] T2.2 — `Purchase` deduplicirana po prirodnom ključu: `branch/channel + document_number + purchase_date` — jedna stvarna transakcija = jedan red, koliko god ljudi dostavilo dokaz o njoj
-- [ ] T2.3 — `Claim.status` state machine: `Submitted → Processing → {AutoApproved, AutoRejected, Escalated} → {OperatorApproved, OperatorRejected}`
-- [ ] T2.4 — **Katalog proizvoda — fiksirati ovdje, prije svega ostalog.** ~10-12 trajnih dobara, 3-4 kategorije, garantni rok po kategoriji uključujući override (npr. baterije 6mj naspram opštih 24mj). Ovo je jedini ulaz od kojeg zavise simulator (E5), RAG korpus (E7) i hero računi (E13) — pravilnik se piše **prema katalogu**, ne obrnuto
-- [ ] T2.5 — Migracije + seed podaci (test korisnici, katalog iz T2.4)
-- [ ] T2.6 — Servisni sloj po entitetu. Operaterska lista (T11.1) ide direktno na `DbContext`, ne kroz generički CRUD — filter po statusu + sort po riziku + paginacija traže `IQueryable` kompoziciju koju generički `GetAll()` gubi
+- [x] T2.1 — EF Core entiteti prema tabeli gore
+- [x] T2.2 — `Purchase` deduplicirana po prirodnom ključu: `branch/channel + document_number + purchase_date` — jedna stvarna transakcija = jedan red, koliko god ljudi dostavilo dokaz o njoj
+- [x] T2.3 — `Claim.status` state machine: `Submitted → Processing → {AutoApproved, AutoRejected, Escalated} → {OperatorApproved, OperatorRejected}`
+- [x] T2.4 — **Katalog proizvoda — fiksirati ovdje, prije svega ostalog.** ~10-12 trajnih dobara, 3-4 kategorije, garantni rok po kategoriji uključujući override (npr. baterije 6mj naspram opštih 24mj). Ovo je jedini ulaz od kojeg zavise simulator (E5), RAG korpus (E7) i hero računi (E13) — pravilnik se piše **prema katalogu**, ne obrnuto
+- [x] T2.5 — Migracije + seed podaci (test korisnici, katalog iz T2.4)
+- [x] T2.6 — Servisni sloj po entitetu. Operaterska lista (T11.1) ide direktno na `DbContext`, ne kroz generički CRUD — filter po statusu + sort po riziku + paginacija traže `IQueryable` kompoziciju koju generički `GetAll()` gubi
 
 ---
 

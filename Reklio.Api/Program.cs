@@ -46,6 +46,12 @@ builder.Services
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IClaimService, ClaimService>();
+builder.Services.AddScoped<IClaimEvidenceService, ClaimEvidenceService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
 builder.Services

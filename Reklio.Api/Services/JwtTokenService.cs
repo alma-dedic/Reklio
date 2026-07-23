@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
+using SecurityClaim = System.Security.Claims.Claim;
 
 namespace Reklio.Api.Services;
 
@@ -21,7 +22,7 @@ public class JwtTokenService : IJwtTokenService
     {
         var expiresAt = DateTime.UtcNow.AddHours(_options.ExpiryHours);
 
-        var claims = new List<Claim>
+        var claims = new List<SecurityClaim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
