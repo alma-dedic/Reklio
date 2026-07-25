@@ -1,0 +1,92 @@
+<div class="screen">
+  @if (loading()) {
+    <div class="card empty">Učitavanje...</div>
+  } @else if (claim(); as c) {
+    <header class="head">
+      <button type="button" class="back" (click)="goBack()" aria-label="Nazad">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M19 12H5" /><path d="M11 6l-6 6 6 6" />
+        </svg>
+      </button>
+      <div>
+        <div class="head__ref mono">{{ c.reference }}</div>
+        <div class="head__product">{{ c.productName }}</div>
+      </div>
+    </header>
+
+    @if (isProcessing()) {
+      <section class="banner">
+        <span class="banner__dot"></span>
+        <div>
+          <div class="banner__title">AI analiza u toku</div>
+          <div class="banner__sub">Ovo obično traje par minuta. Javit ćemo vam čim bude gotovo.</div>
+        </div>
+      </section>
+    } @else {
+      <section class="banner banner--done">
+        <div>
+          <div class="banner__title">{{ statusLabel() }}</div>
+        </div>
+      </section>
+    }
+
+    <div class="stepper">
+      <span class="st">
+        <span class="st__dot st__dot--done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          </svg>
+        </span>
+        <span class="st__label st__label--active">Poslano</span>
+      </span>
+      <span class="st__line st__line--done"></span>
+      <span class="st">
+        <span class="st__dot st__dot--active"></span>
+        <span class="st__label st__label--active">AI analiza</span>
+      </span>
+      <span class="st__line"></span>
+      <span class="st">
+        <span class="st__dot"></span>
+        <span class="st__label">Pregled</span>
+      </span>
+      <span class="st__line"></span>
+      <span class="st">
+        <span class="st__dot"></span>
+        <span class="st__label">Odluka</span>
+      </span>
+    </div>
+
+    <section class="card analysis">
+      <div class="analysis__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z" />
+        </svg>
+        <span>AI analiza</span>
+      </div>
+
+      <!-- AI nalazi ne postoje dok pipeline ne bude implementiran (EPIC 5-9). -->
+      <div class="analysis__row">
+        <span>Dokaz kupovine</span>
+        <span class="analysis__pending">{{ c.analysis?.receiptCheck ?? 'Čeka se OCR ekstrakcija...' }}</span>
+      </div>
+      <div class="analysis__row">
+        <span>Fotografija oštećenja</span>
+        <span class="analysis__pending">{{ c.analysis?.damageCheck ?? 'Čeka se vizuelna analiza...' }}</span>
+      </div>
+      <div class="analysis__row">
+        <span>Provjera pravilnika</span>
+        <span class="analysis__pending">{{ c.analysis?.policyCheck ?? 'Čeka se RAG provjera...' }}</span>
+      </div>
+      <div class="analysis__row analysis__row--last">
+        <span>Procjena rizika</span>
+        <span class="analysis__pending">{{ c.analysis?.riskScore ?? 'Čeka se...' }}</span>
+      </div>
+    </section>
+
+    <section class="card support">
+      <button type="button" class="btn btn--secondary">Kontaktirajte podršku</button>
+    </section>
+  } @else {
+    <div class="card empty">Reklamacija nije pronađena.</div>
+  }
+</div>

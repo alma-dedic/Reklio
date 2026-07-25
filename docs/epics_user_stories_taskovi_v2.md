@@ -102,11 +102,11 @@ validacija i fraud detekcija bile moguće.
 AI analiza završi — želim da odmah dobijem potvrdu i obavještenje kad je gotovo.
 
 **Taskovi:**
-- [ ] T3.1 — `BackgroundService` + in-memory `Channel<T>` red čekanja u `BackgroundJobs/`
-- [ ] T3.2 — Submit endpoint vraća `202 Accepted` odmah, stavlja posao u red
-- [ ] T3.3 — Crash-recovery pass pri startu — traži zaglavljene `Processing` zapise, vraća ih u red (~1h, restarti su česti tokom razvoja)
-- [ ] T3.4 — Angular: polling na ekranu detalja (`timer(0,3000)...takeWhile status==='Processing'`), obavezno zaustaviti na `ngOnDestroy`
-- [ ] T3.5 — Status label lookup (engleski enum → bosanski prikaz), jedno mjesto u `shared/`
+- [x] T3.1 — `BackgroundService` + in-memory `Channel<T>` red čekanja u `BackgroundJobs/`
+- [x] T3.2 — Submit endpoint vraća `202 Accepted` odmah, stavlja posao u red
+- [x] T3.3 — Crash-recovery pass pri startu — traži zaglavljene `Processing` zapise, vraća ih u red (~1h, restarti su česti tokom razvoja)
+- [x] T3.4 — Angular: polling na ekranu detalja (`timer(0,3000)...takeWhile status==='Processing'`), obavezno zaustaviti na `ngOnDestroy` — urađeno u EPIC 4 (ekran detalja)
+- [x] T3.5 — Status label lookup (engleski enum → bosanski prikaz), jedno mjesto u `shared/`
 
 ---
 
@@ -121,10 +121,10 @@ komponenta treba da vrati prije nego je gradim.
 > nije end-to-end demo-sposoban dok EPIC 9 ne postoji — to je prihvaćen kompromis.
 
 **Taskovi:**
-- [ ] T4.1 — Interfejsi u `Services/Interfaces/`: `IOcrService`, `IVisionService`, `IFraudService`, `IRagService`, sa finalnim DTO oblicima (bez implementacije još)
-- [ ] T4.2 — Orkestracija — fixed pipeline (ne agent loop), poziva servise redom, prosljeđuje rezultate decision gate-u. Poziva interfejse; implementacije dolaze u EPIC 5-9
-- [ ] T4.3 — Angular: login → dashboard → wizard (4 koraka: tip kupovine, dokaz, opis, pregled) → ekran potvrde → ekran detalja
-- [ ] T4.4 — Angular ekrani se mogu testirati sa mock JSON odgovorima u dev modu (privremeno, ne kao arhitektonska odluka — samo da frontend ne čeka backend)
+- [x] T4.1 — Interfejsi u `Services/Interfaces/`: `IOcrService`, `IVisionService`, `IFraudService`, `IRagService`, sa finalnim DTO oblicima (bez implementacije još)
+- [x] T4.2 — Orkestracija — fixed pipeline (ne agent loop), poziva servise redom, prosljeđuje rezultate decision gate-u. Poziva interfejse; implementacije dolaze u EPIC 5-9
+- [x] T4.3 — Angular: login → dashboard → wizard (4 koraka: tip kupovine, dokaz, opis, pregled) → ekran potvrde → ekran detalja
+- [x] T4.4 — Angular ekrani se mogu testirati sa mock JSON odgovorima u dev modu (privremeno, ne kao arhitektonska odluka — samo da frontend ne čeka backend)
 
 ---
 
@@ -135,20 +135,20 @@ osnovu ponašanja naloga, jer je vlasništvo nad dokazom kupovine strukturalno
 neprovjerljivo (bearer credential problem — vidi DECISIONS §1, kičma cijelog rada).
 
 **Taskovi:**
-- [ ] T5.1 — `fn_features(@claim_id)` — parametrizovana SQL funkcija, jedini izvor istine za sve feature-e (poziva je i trening i serving strana). Isporučiti kroz EF Core migraciju kao raw SQL
-- [ ] T5.2 — Simulator (`tools/simulator.py`) — skriveni tip (honest/abuser, p≈0.08) → šumovito, **preklapajuće** ponašanje → generiše redove u `Purchase` + istoriju `Claim`. Labela = skriveni tip, nikad funkcija feature-a
-- [ ] T5.3 — **Provjeriti point-in-time leakage** — svaki agregat računat kao stanje u trenutku te reklamacije, isključujući nju samu (`c2.submitted_at < c.submitted_at`, nikad `GETDATE()`)
-- [ ] T5.4 — Feature-i iz četiri porodice:
+- [x] T5.1 — `fn_features(@claim_id)` — parametrizovana SQL funkcija, jedini izvor istine za sve feature-e (poziva je i trening i serving strana). Isporučiti kroz EF Core migraciju kao raw SQL
+- [x] T5.2 — Simulator (`tools/simulator.py`) — skriveni tip (honest/abuser, p≈0.08) → šumovito, **preklapajuće** ponašanje → generiše redove u `Purchase` + istoriju `Claim`. Labela = skriveni tip, nikad funkcija feature-a
+- [x] T5.3 — **Provjeriti point-in-time leakage** — svaki agregat računat kao stanje u trenutku te reklamacije, isključujući nju samu (`c2.submitted_at < c.submitted_at`, nikad `GETDATE()`)
+- [x] T5.4 — Feature-i iz četiri porodice:
   - veza sa kupovinom — `prior_claims_on_purchase`, `purchase_claimed_by_other_account` (najjači pojedinačni feature), `distinct_accounts_on_purchase`
   - vremenski — `days_purchase_to_claim`, `warranty_period_used_pct`, `claimed_within_first_n_days`
   - ponašanje naloga — `total_claims`, `claims_last_30d`, `claims_last_90d`, `mean_days_between_claims`, `account_age_days`, `prior_rejection_rate`
   - vrijednost/raspršenost — `claim_amount`, `amount_vs_user_mean`, `distinct_categories`, `distinct_stores`
   - **Namjerno izostavljeno:** photo-reuse hash, vid/opis slaganje, OCR pouzdanost — drži simulator na čistim redovima (bez fajlova slika, bez LLM ocjena koje bi morale biti simulirane bez kružnosti)
-- [ ] T5.5 — Trening XGBoost (`tools/train.py`) na simuliranom skupu → `model.pkl`. **Mora fitovati na pandas DataFrame, ne numpy array** — inače `feature_names_in_` ne postoji i safeguard iz T5.7 tiho ne postoji umjesto da pukne
-- [ ] T5.6 — **AUC gate.** Očekivano 0.85-0.92. Ako prvi AUC dođe iznad ~0.95, to nije uspjeh nego bug (leakage ili cirkularne labele) — stati i tražiti uzrok prije nastavka
-- [ ] T5.7 — **Feature-order safeguard** (~30 min): C# šalje imenovani dict, nikad niz; FastAPI reordera po imenu prema `model.feature_names_in_`; startup asertacija sa glasnim padom ako se imena ne poklapaju
-- [ ] T5.8 — Prag odluke izveden iz precision/recall krive (ciljana niska stopa lažnih optužbi), ne proizvoljan broj — pogrešna optužba pravog kupca košta mnogo više od odobrene lažne reklamacije od 50 KM
-- [ ] T5.9 — `IFraudService` implementacija — učitava `model.pkl` pri startu, poziva `fn_features`
+- [x] T5.5 — Trening XGBoost (`tools/train.py`) na simuliranom skupu → `model.pkl`. **Mora fitovati na pandas DataFrame, ne numpy array** — inače `feature_names_in_` ne postoji i safeguard iz T5.7 tiho ne postoji umjesto da pukne
+- [x] T5.6 — **AUC gate.** Očekivano 0.85-0.92. Ako prvi AUC dođe iznad ~0.95, to nije uspjeh nego bug (leakage ili cirkularne labele) — stati i tražiti uzrok prije nastavka
+- [x] T5.7 — **Feature-order safeguard** (~30 min): C# šalje imenovani dict, nikad niz; FastAPI reordera po imenu prema `model.feature_names_in_`; startup asertacija sa glasnim padom ako se imena ne poklapaju
+- [x] T5.8 — Prag odluke izveden iz precision/recall krive (ciljana niska stopa lažnih optužbi), ne proizvoljan broj — pogrešna optužba pravog kupca košta mnogo više od odobrene lažne reklamacije od 50 KM
+- [x] T5.9 — `IFraudService` implementacija — učitava `model.pkl` pri startu, poziva `fn_features`
 
 ---
 

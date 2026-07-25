@@ -1,2 +1,7 @@
 fastapi
 uvicorn
+pyodbc
+xgboost
+pandas
+numpy
+scikit-learn

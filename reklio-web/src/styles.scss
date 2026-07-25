@@ -23,39 +23,79 @@ body {
   background: #eef0f3;
 }
 
-/* Shell dashboard ekrana (kupac / operater) */
-.app-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 60px;
-  padding: 0 2rem;
+/* Zajednicki elementi ekrana kupca (dashboard, wizard, potvrda, detalji) */
+.screen {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.card {
+  background: #fff;
+  border: 0.5px solid #eef0f3;
+  border-radius: 12px;
+}
+
+.btn {
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 10px 16px;
+}
+
+.btn--primary {
   background: var(--navy);
   color: #f6f7f9;
+  border: none;
 }
 
-.app-topbar__brand {
+.btn--secondary {
+  background: #fff;
+  color: var(--navy);
+  border: 0.5px solid #d8dce3;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.screen-title {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: 18px;
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 4px;
 }
 
-.app-topbar__logout {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 0.5px solid rgba(246, 247, 249, 0.25);
-  background: transparent;
-  color: #f6f7f9;
-  font-family: var(--font-body);
-  font-size: 14px;
-  cursor: pointer;
+.screen-sub {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 20px;
 }
 
-.app-topbar__logout:hover {
-  background: rgba(246, 247, 249, 0.08);
+.badge {
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 20px;
+  padding: 4px 10px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
+.badge--processing { color: #854f0b; background: #faeeda; }
+.badge--approved { color: #27500a; background: #eaf3de; }
+.badge--rejected { color: #9b1c1c; background: #fdeaea; }
+.badge--neutral { color: #6b7280; background: #eef0f3; }
+
+/* Sadrzaj operaterskog panela (placeholder) */
 .app-page {
   padding: 3rem 2rem;
 }

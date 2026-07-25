@@ -1,0 +1,159 @@
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.appbar {
+  background: var(--navy);
+  border-bottom: 0.5px solid rgba(246, 247, 249, 0.1);
+}
+
+.appbar__inner {
+  height: 60px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brand__mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 13px;
+  color: #062824;
+}
+
+.brand__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 15px;
+  color: #f6f7f9;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.iconbtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #9aa5b4;
+  cursor: default;
+  display: flex;
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+.account {
+  position: relative;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(246, 247, 249, 0.14);
+  color: #f6f7f9;
+  border: 0.5px solid rgba(246, 247, 249, 0.22);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar:hover {
+  background: rgba(246, 247, 249, 0.22);
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 26;
+  width: 220px;
+  background: #fff;
+  border: 0.5px solid #eef0f3;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(16, 27, 45, 0.14);
+  overflow: hidden;
+}
+
+.menu__id {
+  padding: 12px 14px;
+}
+
+.menu__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.menu__email {
+  font-size: 11px;
+  color: #9aa0ac;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu__divider {
+  height: 0.5px;
+  background: #eef0f3;
+}
+
+.menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--navy);
+  text-align: left;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: #6b7280;
+  }
+}
+
+.menu__item:hover {
+  background: #f6f7f9;
+}

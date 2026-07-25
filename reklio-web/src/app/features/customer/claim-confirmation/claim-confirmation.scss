@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+
+.screen {
+  max-width: 480px;
+}
+
+.confirm {
+  padding: 32px 28px;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.head__check {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+
+  svg {
+    width: 26px;
+    height: 26px;
+    color: #04342c;
+  }
+}
+
+.head__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+
+.head__sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+
+.head__ref {
+  font-size: 12px;
+  color: #0f6e56;
+  background: #f0fbfa;
+  border: 0.5px solid #b8e8e0;
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+.timeline {
+  border-top: 0.5px solid #eef0f3;
+  padding-top: 22px;
+  margin-bottom: 20px;
+}
+
+.tl-item {
+  display: flex;
+  gap: 12px;
+}
+
+.tl-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tl-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid #d8dce3;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tl-dot--done {
+  background: var(--teal);
+  border-color: var(--teal);
+
+  svg {
+    width: 13px;
+    height: 13px;
+    color: #04342c;
+  }
+}
+
+.tl-dot--active {
+  border: 2px solid var(--teal);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tl-dot--active {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.tl-line {
+  width: 1px;
+  flex: 1;
+  min-height: 28px;
+  background: #d8dce3;
+}
+
+.tl-line--done {
+  background: var(--teal);
+}
+
+.tl-text {
+  padding-bottom: 18px;
+}
+
+.tl-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--navy);
+}
+
+.tl-title--muted {
+  color: #9aa0ac;
+}
+
+.tl-sub {
+  font-size: 11px;
+  color: #9aa0ac;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .btn {
+    width: 100%;
+    padding: 11px;
+  }
+}

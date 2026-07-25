@@ -1,0 +1,70 @@
+<div class="screen">
+  <div class="card confirm">
+    <div class="head">
+      <span class="head__check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+      </span>
+      <h1 class="head__title">Reklamacija je uspješno poslana</h1>
+      <p class="head__sub">Vaš zahtjev je zaprimljen i AI je već počeo analizu.</p>
+      @if (reference()) {
+        <span class="head__ref mono">{{ reference() }}</span>
+      }
+    </div>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-rail">
+          <span class="tl-dot tl-dot--done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+          <span class="tl-line tl-line--done"></span>
+        </div>
+        <div class="tl-text">
+          <div class="tl-title">Reklamacija poslana</div>
+          <div class="tl-sub">Upravo sada</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-rail">
+          <span class="tl-dot tl-dot--active"></span>
+          <span class="tl-line"></span>
+        </div>
+        <div class="tl-text">
+          <div class="tl-title">AI analiza u toku</div>
+          <div class="tl-sub">OCR, vizuelna i rizik analiza</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-rail">
+          <span class="tl-dot"></span>
+          <span class="tl-line"></span>
+        </div>
+        <div class="tl-text">
+          <div class="tl-title tl-title--muted">Pregled i odluka</div>
+          <div class="tl-sub">Automatski ili uz operatera</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-rail">
+          <span class="tl-dot"></span>
+        </div>
+        <div class="tl-text">
+          <div class="tl-title tl-title--muted">Obavještenje o ishodu</div>
+          <div class="tl-sub">Dobit ćete notifikaciju u aplikaciji</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn--primary" (click)="trackStatus()">Prati status reklamacije</button>
+      <button type="button" class="btn btn--secondary" (click)="goHome()">Nazad na početnu</button>
+    </div>
+  </div>
+</div>

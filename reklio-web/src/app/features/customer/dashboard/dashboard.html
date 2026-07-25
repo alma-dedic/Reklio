@@ -1,0 +1,50 @@
+<div class="screen">
+  <h1 class="screen-title">Dobrodošli nazad, {{ firstName() }}</h1>
+  <p class="screen-sub">Evo pregleda vaših reklamacija.</p>
+
+  <section class="cta">
+    <div class="cta__text">
+      <svg class="cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" />
+        <path d="M14 3v5h5" />
+        <path d="M18 14v6M15 17h6" />
+      </svg>
+      <div>
+        <div class="cta__title">Imate problem sa proizvodom?</div>
+        <div class="cta__sub">Prijavite reklamaciju u par koraka, AI odmah počinje analizu.</div>
+      </div>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="startClaim()">Započnite reklamaciju</button>
+  </section>
+
+  <div class="list-title">Vaše reklamacije</div>
+
+  @if (loading()) {
+    <div class="card empty">Učitavanje...</div>
+  } @else if (claims().length === 0) {
+    <div class="card empty">
+      <div class="empty__title">Još nemate reklamacija</div>
+      <div class="empty__sub">Kad prijavite reklamaciju, pojavit će se ovdje.</div>
+    </div>
+  } @else {
+    @for (claim of claims(); track claim.id) {
+      <button type="button" class="card row" (click)="openClaim(claim.id)">
+        <span class="row__left">
+          <span class="row__thumb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <rect x="7" y="3" width="10" height="18" rx="2" />
+              <path d="M11 18h2" />
+            </svg>
+          </span>
+          <span>
+            <span class="row__name">{{ claim.productName }}</span>
+            <span class="row__ref mono">{{ claim.reference }}</span>
+          </span>
+        </span>
+        <span class="badge" [class]="'badge ' + badgeClass(claim.status)">
+          {{ statusLabel(claim.status) }}
+        </span>
+      </button>
+    }
+  }
+</div>

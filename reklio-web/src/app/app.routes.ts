@@ -24,17 +24,54 @@ export const routes: Routes = [
     path: 'kupac',
     canActivate: [authGuard, roleGuard('Customer')],
     loadComponent: () =>
-      import('./features/customer/customer-home/customer-home').then(
-        (m) => m.CustomerHome,
+      import('./features/customer/customer-layout/customer-layout').then(
+        (m) => m.CustomerLayout,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/customer/dashboard/dashboard').then((m) => m.Dashboard),
+      },
+      {
+        path: 'nova',
+        loadComponent: () =>
+          import('./features/customer/claim-wizard/claim-wizard').then(
+            (m) => m.ClaimWizard,
+          ),
+      },
+      {
+        path: 'reklamacija/:id/potvrda',
+        loadComponent: () =>
+          import(
+            './features/customer/claim-confirmation/claim-confirmation'
+          ).then((m) => m.ClaimConfirmation),
+      },
+      {
+        path: 'reklamacija/:id',
+        loadComponent: () =>
+          import('./features/customer/claim-details/claim-details').then(
+            (m) => m.ClaimDetails,
+          ),
+      },
+    ],
   },
   {
     path: 'operater',
     canActivate: [authGuard, roleGuard('Operator')],
     loadComponent: () =>
-      import('./features/operator/operator-panel/operator-panel').then(
-        (m) => m.OperatorPanel,
+      import('./features/operator/operator-layout/operator-layout').then(
+        (m) => m.OperatorLayout,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/operator/operator-panel/operator-panel').then(
+            (m) => m.OperatorPanel,
+          ),
+      },
+    ],
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Reklio.Api.BackgroundJobs;
 using Reklio.Api.Data;
 using Reklio.Api.Models;
 using Reklio.Api.Services;
@@ -51,6 +52,16 @@ builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<IClaimEvidenceService, ClaimEvidenceService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddSingleton<IClaimQueue, ClaimQueue>();
+builder.Services.AddHostedService<ClaimProcessingWorker>();
+
+// T5.9 — fraud servis zove Python (FastAPI) preko typed HttpClient-a.
+builder.Services.AddHttpClient<IFraudService, FraudService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
