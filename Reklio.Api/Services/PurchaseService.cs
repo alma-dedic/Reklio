@@ -28,4 +28,11 @@ public class PurchaseService : IPurchaseService
                 p.DocumentNumber == documentNumber &&
                 p.PurchaseDate == purchaseDate);
     }
+
+    public async Task<Purchase?> FindByDocumentNumberAsync(string documentNumber)
+    {
+        return await _db.Purchases
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.DocumentNumber == documentNumber);
+    }
 }

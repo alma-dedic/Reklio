@@ -1,4 +1,19 @@
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_ROOT / ".env")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
+
+# RAG (EPIC 7) — eksplicitno OpenAI embeddings, nikad Chroma default.
+EMBEDDING_MODEL = "text-embedding-3-small"
+CHROMA_DIR = str(_ROOT / "chroma_db")
+CHROMA_COLLECTION = "policy"
 
 # Kanonska imena i redoslijed feature-a. MORA se poklapati sa fn_features
 # kolonama i sa model.feature_names_in_ (provjerava se pri startu — T5.7).
@@ -21,6 +36,5 @@ FEATURE_NAMES = [
     "distinct_stores",
 ]
 
-_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = _ROOT / "models" / "model.pkl"
 META_PATH = _ROOT / "models" / "model_meta.json"

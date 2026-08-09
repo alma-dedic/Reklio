@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Reklio.Api.Data;
 using Reklio.Api.Models;
+using Reklio.Api.Services;
 using Reklio.Api.Services.Interfaces;
 
 namespace Reklio.Api.BackgroundJobs;
@@ -94,12 +95,12 @@ public class ClaimProcessingWorker : BackgroundService
             await claims.UpdateStatusAsync(claimId, ClaimStatus.Processing);
         }
 
-        // TODO (EPIC 5-9): pozvati ClaimAnalysisPipeline pa decision gate.
-        // Do tada namjerno ne izmišljamo odluku — reklamacija ostaje u Processing.
-        _logger.LogInformation(
-            "AI pipeline nije implementiran — reklamacija {ClaimId} ostaje u statusu Processing.",
-            claimId);
+        // T9.4 — pun AI pipeline: signali → deterministički gate → fiksna odluka → objašnjenje.
+        var pipeline = scope.ServiceProvider.GetRequiredService<ClaimAnalysisPipeline>();
+        var decision = await pipeline.RunAsync(claimId, cancellationToken);
 
-        await Task.CompletedTask;
+        _logger.LogInformation(
+            "Reklamacija {ClaimId} obrađena: {Status} ({Code}).",
+            claimId, decision.Status, decision.ReasonCode);
     }
 }

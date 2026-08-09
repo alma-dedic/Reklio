@@ -1,4 +1,4 @@
-"""tools/simulator.py — T5.2 / T5.4
+"""
 
 Generiše simulirane naloge, kupovine i istoriju reklamacija za trening fraud modela.
 

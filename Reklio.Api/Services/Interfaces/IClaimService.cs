@@ -10,4 +10,10 @@ public interface IClaimService
 
     // Mijenja status uz provjeru state machine-a (T2.3). Baca ako je prelaz nevalidan.
     Task UpdateStatusAsync(int claimId, ClaimStatus newStatus);
+
+    // T9 — atomski upisuje rizik i fiksira odluku gate-a (prelaz uz provjeru).
+    Task ApplyDecisionAsync(int claimId, double riskScore, ClaimStatus newStatus);
+
+    // T9.3 — upisuje operatersko LLM objašnjenje nakon fiksirane odluke.
+    Task SetExplanationAsync(int claimId, string aiExplanation);
 }

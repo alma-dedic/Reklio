@@ -1,9 +1,9 @@
 namespace Reklio.Api.DTOs.Ai;
 
-// Rezultat vizuelne analize fotografija oštećenja (implementacija: EPIC 8).
+// Odgovara /analyze/damage (T8.2). DamageType i Severity su iz fiksnih enum lista.
 public record VisionResult(
-    bool DamageDetected,
-    string? DamageType,
-    string? Severity,
+    bool DamageConfirmed,
+    string DamageType,
+    string Severity,
     double Confidence,
-    string? Description);
+    string Description);

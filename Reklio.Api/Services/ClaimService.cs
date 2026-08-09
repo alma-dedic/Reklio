@@ -51,6 +51,31 @@ public class ClaimService : IClaimService
         await _db.SaveChangesAsync();
     }
 
+    public async Task ApplyDecisionAsync(int claimId, double riskScore, ClaimStatus newStatus)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        if (!CanTransition(claim.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                $"Nevalidan prelaz statusa: {claim.Status} → {newStatus}.");
+        }
+
+        claim.RiskScore = riskScore;
+        claim.Status = newStatus;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task SetExplanationAsync(int claimId, string aiExplanation)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        claim.AiExplanation = aiExplanation;
+        await _db.SaveChangesAsync();
+    }
+
     private static bool CanTransition(ClaimStatus from, ClaimStatus to)
     {
         return AllowedTransitions.TryGetValue(from, out var allowed) && allowed.Contains(to);

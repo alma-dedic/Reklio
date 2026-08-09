@@ -17,6 +17,7 @@ __pycache__/
 # AI artefakti (generisano lokalno)
 reklio-ai/models/
 reklio-ai/tools/data/
+reklio-ai/chroma_db/
 
 # Ostalo
 .env

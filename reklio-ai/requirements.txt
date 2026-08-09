@@ -5,3 +5,13 @@ xgboost
 pandas
 numpy
 scikit-learn
+Pillow
+openai
+python-dotenv
+python-multipart
+chromadb
+langchain-openai
+langchain-chroma
+langchain-community
+langchain-text-splitters
+rank-bm25

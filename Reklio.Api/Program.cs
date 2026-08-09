@@ -52,12 +52,46 @@ builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<IClaimEvidenceService, ClaimEvidenceService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IReceiptValidationService, ReceiptValidationService>();
+
+// T9.1 — deterministički gate je čista funkcija bez stanja.
+builder.Services.AddSingleton<IDecisionGate, DecisionGate>();
+// T9.4 — orkestrator koji worker zove po reklamaciji.
+builder.Services.AddScoped<ClaimAnalysisPipeline>();
 
 builder.Services.AddSingleton<IClaimQueue, ClaimQueue>();
 builder.Services.AddHostedService<ClaimProcessingWorker>();
 
 // T5.9 — fraud servis zove Python (FastAPI) preko typed HttpClient-a.
 builder.Services.AddHttpClient<IFraudService, FraudService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
+
+// T6.6 — OCR servis isto zove Python (FastAPI).
+builder.Services.AddHttpClient<IOcrService, OcrService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
+
+// T7.6 — RAG servis (pravilnik) zove Python (FastAPI).
+builder.Services.AddHttpClient<IRagService, RagService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
+
+// T8.3 — vision servis (oštećenja) zove Python (FastAPI).
+builder.Services.AddHttpClient<IVisionService, VisionService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
+
+// T9.3 — explanation servis (LLM objašnjenje odluke) zove Python (FastAPI).
+builder.Services.AddHttpClient<IExplanationService, ExplanationService>(client =>
 {
     client.BaseAddress = new Uri(
         builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");

@@ -161,12 +161,12 @@ reklamacije.
 > Hero računi se NE rade ovdje — samo za demo, zamrzavaju se u sedmici 7 (T13.5).
 
 **Taskovi:**
-- [ ] T6.1 — Bulk skup računa: HTML→PNG render (tekst tačan po konstrukciji) pa programska degradacija (perspektiva, tekstura, sjena, zamućenje — Augraphy)
+- [x] T6.1 — Bulk skup računa: HTML→PNG render (tekst tačan po konstrukciji) pa programska degradacija (perspektiva, tekstura, sjena, zamućenje — Augraphy)
 - [ ] T6.2 — Opcionalno: odštampati i fotografisati ~5 komada za poštenu tvrdnju da je OCR testiran na stvarnim fotografijama
-- [ ] T6.3 — Fizička kupovina: `POST /analyze/receipt` — OpenAI multimodalni poziv, `temperature=0`, structured output
-- [ ] T6.4 — Online kupovina: direktan lookup po kodu narudžbe protiv `Purchase` — bez OCR-a
-- [ ] T6.5 — Validacija — poređenje ekstrahovanih/unesenih podataka sa `Purchase` (fuzzy match za OCR polja)
-- [ ] T6.6 — `IOcrService` implementacija
+- [x] T6.3 — Fizička kupovina: `POST /analyze/receipt` — OpenAI multimodalni poziv, `temperature=0`, structured output
+- [x] T6.4 — Online kupovina: direktan lookup po kodu narudžbe protiv `Purchase` — bez OCR-a
+- [x] T6.5 — Validacija — poređenje ekstrahovanih/unesenih podataka sa `Purchase` (fuzzy match za OCR polja)
+- [x] T6.6 — `IOcrService` implementacija
 
 ---
 
@@ -176,12 +176,12 @@ reklamacije.
 uslovima garancije, citirajući tačan član pravilnika.
 
 **Taskovi:**
-- [ ] T7.1 — Proširiti pravilnik sa namjernim "zamkama": leksički gotovo-promašaji (poseban dokument o povratu/refundaciji), preklapajući autoritet (izuzetak za kategoriju), kontradiktorni izuzeci
-- [ ] T7.2 — ~15 dokumenata / 100-150 chunk-ova ukupno
-- [ ] T7.3 — ChromaDB ingest + LangChain retrieval chain. **Eksplicitno postaviti embedding funkciju na OpenAI `text-embedding-3-small`** — Chroma default (`all-MiniLM-L6-v2`) tiho skida 79MB, engleski-only, past bi na demo mašini
-- [ ] T7.4 — Evaluacija: BM25 naspram embeddings na upitima sa leksičkim zamkama (~2h, tabela za Poglavlje 6)
-- [ ] T7.5 — `POST /analyze/policy` — vraća `{covered, applicable_exclusion, cited_article}`
-- [ ] T7.6 — `IRagService` implementacija
+- [x] T7.1 — Proširiti pravilnik sa namjernim "zamkama": leksički gotovo-promašaji (poseban dokument o povratu/refundaciji), preklapajući autoritet (izuzetak za kategoriju), kontradiktorni izuzeci
+- [x] T7.2 — ~15 dokumenata / 100-150 chunk-ova ukupno
+- [x] T7.3 — ChromaDB ingest + LangChain retrieval chain. **Eksplicitno postaviti embedding funkciju na OpenAI `text-embedding-3-small`** — Chroma default (`all-MiniLM-L6-v2`) tiho skida 79MB, engleski-only, past bi na demo mašini
+- [x] T7.4 — Evaluacija: BM25 naspram embeddings na upitima sa leksičkim zamkama (~2h, tabela za Poglavlje 6)
+- [x] T7.5 — `POST /analyze/policy` — vraća `{covered, applicable_exclusion, cited_article}`
+- [x] T7.6 — `IRagService` implementacija
 
 ---
 
@@ -191,9 +191,9 @@ uslovima garancije, citirajući tačan član pravilnika.
 stvarno i koliko ozbiljno.
 
 **Taskovi:**
-- [ ] T8.1 — Bazen ~10-15 AI-generisanih fotografija oštećenja
-- [ ] T8.2 — `POST /analyze/damage` — GPT vision poziv, `temperature=0`, structured output: `{damage_confirmed, damage_type, severity, confidence}`
-- [ ] T8.3 — `IVisionService` implementacija
+- [x] T8.1 — Bazen ~10-15 AI-generisanih fotografija oštećenja
+- [x] T8.2 — `POST /analyze/damage` — GPT vision poziv, `temperature=0`, structured output: `{damage_confirmed, damage_type, severity, confidence}`
+- [x] T8.3 — `IVisionService` implementacija
 
 ---
 
@@ -203,11 +203,11 @@ stvarno i koliko ozbiljno.
 osnovu svih AI signala, i tu odluku jasno objasniti korisniku i operateru.
 
 **Taskovi:**
-- [ ] T9.1 — Decision gate — deterministička funkcija (ne LLM): kombinuje validaciju + rizik skor + vid + RAG rezultat
-- [ ] T9.2 — Konzervativna automatizacija: auto-odobri samo jasan nizak rizik; auto-odbij samo na tvrdim greškama (nema poklapanja u `Purchase`, van garancije); sve ostalo → eskaliraj operateru. **Nikad auto-odbij na osnovu mekog signala**
-- [ ] T9.3 — LLM objašnjenje — poziva se TEK nakon što je odluka fiksirana; dva teksta (korisnik — jednostavno, operater — tehnički), citira RAG nalaz
-- [ ] T9.4 — Napomena za rad: kombinacija je deterministička, ulazi (vid, RAG verdikt) nisu — "near-reproducible", ne "reproducible"
-- [ ] T9.5 — **Prvi pravi end-to-end test** — od ovog trenutka sistem ima puni demo-sposoban tok
+- [x] T9.1 — Decision gate — deterministička funkcija (ne LLM): kombinuje validaciju + rizik skor + vid + RAG rezultat
+- [x] T9.2 — Konzervativna automatizacija: auto-odobri samo jasan nizak rizik; auto-odbij samo na tvrdim greškama (nema poklapanja u `Purchase`, van garancije); sve ostalo → eskaliraj operateru. **Nikad auto-odbij na osnovu mekog signala**
+- [x] T9.3 — LLM objašnjenje — poziva se TEK nakon što je odluka fiksirana; dva teksta (korisnik — jednostavno, operater — tehnički), citira RAG nalaz
+- [x] T9.4 — Napomena za rad: kombinacija je deterministička, ulazi (vid, RAG verdikt) nisu — "near-reproducible", ne "reproducible"
+- [x] T9.5 — **Prvi pravi end-to-end test** — od ovog trenutka sistem ima puni demo-sposoban tok
 
 ---
 
