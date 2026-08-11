@@ -11,8 +11,14 @@ public interface IClaimService
     // Reklamacije jednog korisnika (sa Purchase+Product) — za listu na dashboardu.
     Task<IReadOnlyList<Claim>> GetByUserAsync(string userId);
 
-    // Jedna reklamacija sa Purchase+Product — za ekran detalja.
+    // Jedna reklamacija sa Purchase+Product+User — za ekran detalja / operatera.
     Task<Claim?> GetDetailAsync(int id);
+
+    // Eskalirane reklamacije, sortirane po riziku (najviši prvo) — operaterov red.
+    Task<IReadOnlyList<Claim>> GetEscalatedAsync();
+
+    // Operaterska odluka: Escalated → OperatorApproved/Rejected + upiše operatera.
+    Task ResolveByOperatorAsync(int claimId, string operatorId, ClaimStatus newStatus);
 
     // Mijenja status uz provjeru state machine-a (T2.3). Baca ako je prelaz nevalidan.
     Task UpdateStatusAsync(int claimId, ClaimStatus newStatus);

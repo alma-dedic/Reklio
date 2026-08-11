@@ -119,6 +119,10 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
             RoleClaimType = "role"
         };
+
+        // Bez ovoga JWT handler preimenuje "role"/"sub" u duge URI nazive, pa
+        // [Authorize(Roles="Operator")] ne pronalazi rolu. Zadržavamo originalne nazive.
+        options.MapInboundClaims = false;
     });
 
 builder.Services.AddAuthorization();

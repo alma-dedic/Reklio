@@ -235,9 +235,9 @@ reklamacije, na prirodnom jeziku.
 AI nalazima na jednom mjestu.
 
 **Taskovi:**
-- [ ] T11.1 — Lista reklamacija na čekanju, sortirano po riziku (direktno na `DbContext`, vidi T2.6)
-- [ ] T11.2 — Detaljan prikaz: OCR podaci, foto sa naznakom oštećenja, RAG citat, risk skor + razlog, LLM preporuka za operatera
-- [ ] T11.3 — Akcije: odobri / odbij / zatraži dopunu
+- [x] T11.1 — Lista reklamacija na čekanju, sortirano po riziku (direktno na `DbContext`, vidi T2.6)
+- [x] T11.2 — Detaljan prikaz: OCR podaci, foto sa naznakom oštećenja, RAG citat, risk skor + razlog, LLM preporuka za operatera
+- [ ] T11.3 — Akcije: odobri / odbij / zatraži dopunu — *odobri/odbij gotovo; „zatraži dopunu" odgođeno (treba novi status + tok da kupac doda dokaze)*
 
 ---
 

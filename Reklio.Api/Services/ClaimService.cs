@@ -50,8 +50,37 @@ public class ClaimService : IClaimService
     {
         return await _db.Claims
             .AsNoTracking()
+            .Include(c => c.User)
             .Include(c => c.Purchase!).ThenInclude(p => p.Product)
             .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task<IReadOnlyList<Claim>> GetEscalatedAsync()
+    {
+        return await _db.Claims
+            .AsNoTracking()
+            .Include(c => c.User)
+            .Include(c => c.Purchase!).ThenInclude(p => p.Product)
+            .Where(c => c.Status == ClaimStatus.Escalated)
+            .OrderByDescending(c => c.RiskScore)   // najviši rizik prvo; NULL rizik ide na kraj
+            .ThenByDescending(c => c.SubmittedAt)
+            .ToListAsync();
+    }
+
+    public async Task ResolveByOperatorAsync(int claimId, string operatorId, ClaimStatus newStatus)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        if (!CanTransition(claim.Status, newStatus))
+        {
+            throw new InvalidOperationException(
+                $"Nevalidan prelaz statusa: {claim.Status} → {newStatus}.");
+        }
+
+        claim.OperatorId = operatorId;
+        claim.Status = newStatus;
+        await _db.SaveChangesAsync();
     }
 
     public async Task LinkPurchaseAsync(int claimId, int purchaseId)

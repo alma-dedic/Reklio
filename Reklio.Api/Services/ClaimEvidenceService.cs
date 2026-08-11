@@ -21,6 +21,11 @@ public class ClaimEvidenceService : IClaimEvidenceService
         return evidence;
     }
 
+    public async Task<ClaimEvidence?> GetByIdAsync(int id)
+    {
+        return await _db.ClaimEvidence.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+    }
+
     public async Task<IReadOnlyList<ClaimEvidence>> GetByClaimAsync(int claimId)
     {
         return await _db.ClaimEvidence

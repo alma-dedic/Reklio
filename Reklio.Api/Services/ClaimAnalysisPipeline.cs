@@ -179,6 +179,7 @@ public class ClaimAnalysisPipeline
             CustomerExplanation: explanation?.UserText,
             OperatorExplanation: explanation?.OperatorText,
             ReasonCode: decision.ReasonCode,
+            Factors: decision.Factors,
             DecidedAt: DateTime.UtcNow);
 
         return JsonSerializer.Serialize(snapshot);

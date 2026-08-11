@@ -1,4 +1,122 @@
-<main class="app-page">
-  <h1>Operaterski panel</h1>
-  <p>Ekran je u izradi.</p>
-</main>
+<div class="op">
+  <!-- RED (lista) -->
+  <aside class="op-list">
+    <div class="op-list__head">
+      <span>Eskalirano ({{ claims().length }})</span>
+      <span class="op-list__sort">Rizik ▾</span>
+    </div>
+
+    @if (loadingList()) {
+      <div class="op-empty">Učitavanje...</div>
+    } @else if (claims().length === 0) {
+      <div class="op-empty">Nema eskaliranih reklamacija.</div>
+    } @else {
+      @for (c of claims(); track c.id) {
+        <button type="button" class="op-row" [class.op-row--active]="selectedId() === c.id"
+                (click)="select(c.id)">
+          <div class="op-row__top">
+            <span class="op-row__ref mono">{{ c.reference }}</span>
+            <span class="op-risk" [class]="riskClass(c.riskScore)">{{ riskLabel(c.riskScore) }}</span>
+          </div>
+          <div class="op-row__product">{{ c.productName }}</div>
+          <div class="op-row__time">{{ timeAgo(c.submittedAt) }}</div>
+        </button>
+      }
+    }
+  </aside>
+
+  <!-- DETALJ -->
+  <section class="op-detail">
+    @if (detail(); as d) {
+      <header class="op-detail__head">
+        <div>
+          <div class="op-detail__ref mono">{{ d.reference }}</div>
+          <h1 class="op-detail__title">{{ d.productName }}</h1>
+        </div>
+        <span class="op-risk op-risk--pill" [class]="riskClass(d.analysis?.riskScore)">
+          Rizik: {{ riskLabel(d.analysis?.riskScore ?? null) }}
+        </span>
+      </header>
+
+      <div class="op-customer">{{ d.customerName }} · {{ d.customerEmail }}</div>
+
+      <div class="op-section">
+        <div class="op-label">Opis problema (kupac)</div>
+        <p class="op-quote">"{{ d.issueDescription }}"</p>
+      </div>
+
+      @if (d.analysis; as a) {
+        <div class="op-section op-analysis">
+          @if (d.evidence.length) {
+            <div class="op-images">
+              @for (ev of d.evidence; track ev.id) {
+                @if (evidenceUrl(ev.id); as url) {
+                  <img class="op-thumb" [src]="url" [alt]="ev.type" />
+                } @else {
+                  <div class="op-thumb op-thumb--ph"></div>
+                }
+              }
+            </div>
+          }
+          <div class="op-findings">
+            @if (a.damageCheck) { <div><b>Oštećenje:</b> {{ a.damageCheck }}</div> }
+            @if (a.receiptCheck) { <div><b>Dokaz kupovine:</b> {{ a.receiptCheck }}</div> }
+          </div>
+        </div>
+
+        @if (a.policyCheck) {
+          <div class="op-section op-rag">
+            <div class="op-label">RAG nalaz</div>
+            <p>{{ a.policyCheck }}</p>
+          </div>
+        }
+
+        <div class="op-section">
+          <div class="op-risk-row">
+            <span class="op-label">Rizik od zloupotrebe (XGBoost)</span>
+            <span class="op-risk-val" [class]="riskClass(a.riskScore)">{{ formatRisk(a.riskScore) }}</span>
+          </div>
+          @if (d.factors.length) {
+            <div class="op-reason">
+              <span class="op-reason__label">Razlog eskalacije:</span>
+              <ul>
+                @for (f of d.factors; track f) { <li>{{ f }}</li> }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+
+      @if (d.operatorExplanation) {
+        <div class="op-reco">
+          <b>AI preporuka:</b> {{ d.operatorExplanation }}
+        </div>
+      }
+
+      <div class="op-actions">
+        <button type="button" class="op-btn op-btn--reject" [disabled]="processing()" (click)="askReject()">
+          Odbij
+        </button>
+        <button type="button" class="op-btn op-btn--approve" [disabled]="processing()" (click)="askApprove()">
+          Odobri
+        </button>
+      </div>
+    } @else if (loadingDetail()) {
+      <div class="op-empty op-empty--center">Učitavanje...</div>
+    } @else {
+      <div class="op-empty op-empty--center">Izaberite reklamaciju iz reda.</div>
+    }
+  </section>
+</div>
+
+@if (confirmAction()) {
+  <app-confirm-dialog
+    [title]="confirmDialogTitle()"
+    message="Ova radnja je konačna i kupac će biti obaviješten."
+    [confirmText]="confirmAction() === 'approve' ? 'Odobri' : 'Odbij'"
+    cancelText="Otkaži"
+    [danger]="confirmAction() === 'reject'"
+    (confirmed)="onConfirm()"
+    (cancelled)="cancelConfirm()"
+  />
+}

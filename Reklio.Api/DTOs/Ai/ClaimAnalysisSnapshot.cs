@@ -8,4 +8,5 @@ public record ClaimAnalysisSnapshot(
     string? CustomerExplanation,
     string? OperatorExplanation,
     string ReasonCode,
+    IReadOnlyList<string> Factors,
     DateTime DecidedAt);
