@@ -36,6 +36,42 @@ public class ClaimService : IClaimService
         return claim;
     }
 
+    public async Task<IReadOnlyList<Claim>> GetByUserAsync(string userId)
+    {
+        return await _db.Claims
+            .AsNoTracking()
+            .Include(c => c.Purchase!).ThenInclude(p => p.Product)
+            .Where(c => c.UserId == userId)
+            .OrderByDescending(c => c.SubmittedAt)
+            .ToListAsync();
+    }
+
+    public async Task<Claim?> GetDetailAsync(int id)
+    {
+        return await _db.Claims
+            .AsNoTracking()
+            .Include(c => c.Purchase!).ThenInclude(p => p.Product)
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task LinkPurchaseAsync(int claimId, int purchaseId)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        claim.PurchaseId = purchaseId;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task SaveAnalysisAsync(int claimId, string analysisJson)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        claim.AnalysisJson = analysisJson;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task UpdateStatusAsync(int claimId, ClaimStatus newStatus)
     {
         var claim = await _db.Claims.FindAsync(claimId)
@@ -51,7 +87,7 @@ public class ClaimService : IClaimService
         await _db.SaveChangesAsync();
     }
 
-    public async Task ApplyDecisionAsync(int claimId, double riskScore, ClaimStatus newStatus)
+    public async Task ApplyDecisionAsync(int claimId, double? riskScore, ClaimStatus newStatus)
     {
         var claim = await _db.Claims.FindAsync(claimId)
             ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");

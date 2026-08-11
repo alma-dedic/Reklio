@@ -1,14 +1,17 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimsService } from '../../../core/claims/claims.service';
 import { PurchaseType } from '../../../core/claims/claim.models';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
 const STEP_LABELS = ['Kupovina', 'Fotografije', 'Opis', 'Pregled'];
+const MAX_PHOTOS = 3;
 
 @Component({
   selector: 'app-claim-wizard',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ConfirmDialog],
   templateUrl: './claim-wizard.html',
   styleUrl: './claim-wizard.scss',
 })
@@ -18,13 +21,15 @@ export class ClaimWizard {
   private readonly router = inject(Router);
 
   protected readonly steps = STEP_LABELS;
+  protected readonly maxPhotos = MAX_PHOTOS;
   protected readonly step = signal(1);
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly showCancelConfirm = signal(false);
 
   protected readonly purchaseType = signal<PurchaseType>('InStore');
-  protected readonly receiptFileName = signal<string>('');
-  protected readonly photoFileNames = signal<string[]>([]);
+  protected readonly receiptFile = signal<File | null>(null);
+  protected readonly photoFiles = signal<File[]>([]);
 
   protected readonly form = this.fb.nonNullable.group({
     documentNumber: [''],
@@ -32,18 +37,25 @@ export class ClaimWizard {
     issueDescription: ['', [Validators.required, Validators.minLength(10)]],
   });
 
+  // Vrijednost forme kao signal — bez ovoga se canGoNext ne preračunava dok kucaš
+  // (FormControl.valid/.value nisu signali). valueChanges okida na svaku promjenu.
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
   protected readonly isLastStep = computed(() => this.step() === STEP_LABELS.length);
 
   protected readonly canGoNext = computed(() => {
+    const value = this.formValue();
     switch (this.step()) {
       case 1:
         return this.purchaseType() === 'InStore'
-          ? this.receiptFileName().length > 0
-          : this.form.controls.documentNumber.value.trim().length > 0;
+          ? this.receiptFile() !== null
+          : (value.documentNumber ?? '').trim().length > 0;
       case 2:
-        return this.photoFileNames().length > 0;
+        return this.photoFiles().length > 0;
       case 3:
-        return this.form.controls.issueDescription.valid;
+        return (value.issueDescription ?? '').trim().length >= 10;
       default:
         return true;
     }
@@ -54,24 +66,43 @@ export class ClaimWizard {
   }
 
   protected onReceiptSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    this.receiptFileName.set(file ? file.name : '');
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    this.receiptFile.set(file);
   }
 
   protected onPhotosSelected(event: Event): void {
     const files = Array.from((event.target as HTMLInputElement).files ?? []);
-    const names = files.map((f) => f.name);
-    this.photoFileNames.set([...this.photoFileNames(), ...names].slice(0, 5));
+    this.photoFiles.set([...this.photoFiles(), ...files].slice(0, MAX_PHOTOS));
   }
 
-  protected removePhoto(name: string): void {
-    this.photoFileNames.set(this.photoFileNames().filter((n) => n !== name));
+  protected removePhoto(index: number): void {
+    this.photoFiles.set(this.photoFiles().filter((_, i) => i !== index));
   }
 
   protected back(): void {
     if (this.step() > 1) {
       this.step.set(this.step() - 1);
     }
+  }
+
+  protected cancel(): void {
+    const raw = this.form.getRawValue();
+    const hasData =
+      this.receiptFile() !== null ||
+      this.photoFiles().length > 0 ||
+      raw.documentNumber.trim().length > 0 ||
+      raw.issueDescription.trim().length > 0;
+
+    if (hasData) {
+      this.showCancelConfirm.set(true);
+    } else {
+      this.router.navigate(['/kupac']);
+    }
+  }
+
+  protected confirmCancel(): void {
+    this.showCancelConfirm.set(false);
+    this.router.navigate(['/kupac']);
   }
 
   protected next(): void {
@@ -98,17 +129,19 @@ export class ClaimWizard {
       .submitClaim({
         purchaseType: this.purchaseType(),
         documentNumber: raw.documentNumber,
-        receiptFileName: this.receiptFileName(),
-        photoFileNames: this.photoFileNames(),
+        receiptFile: this.receiptFile(),
+        photoFiles: this.photoFiles(),
         issueType: raw.issueType,
         issueDescription: raw.issueDescription,
       })
       .subscribe({
         next: (result) =>
           this.router.navigate(['/kupac/reklamacija', result.id, 'potvrda']),
-        error: () => {
+        error: (err) => {
           this.submitting.set(false);
-          this.errorMessage.set('Slanje nije uspjelo. Pokušajte ponovo.');
+          this.errorMessage.set(
+            err?.error?.message ?? 'Slanje nije uspjelo. Pokušajte ponovo.',
+          );
         },
       });
   }

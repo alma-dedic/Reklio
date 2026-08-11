@@ -10,8 +10,7 @@ export interface ClaimSummary {
   submittedAt: string;
 }
 
-// AI nalazi — svako polje je null dok odgovarajuća komponenta ne postoji
-// (OCR: EPIC 6, vizuelna: EPIC 8, pravilnik: EPIC 7, rizik: EPIC 5).
+// AI nalazi — svako polje je null dok pipeline ne završi obradu.
 export interface ClaimAnalysis {
   receiptCheck: string | null;
   damageCheck: string | null;
@@ -22,14 +21,15 @@ export interface ClaimAnalysis {
 export interface ClaimDetail extends ClaimSummary {
   issueType: string;
   issueDescription: string;
+  explanation: string | null;
   analysis: ClaimAnalysis | null;
 }
 
 export interface CreateClaimPayload {
   purchaseType: PurchaseType;
-  documentNumber: string;
-  receiptFileName: string;
-  photoFileNames: string[];
+  documentNumber: string;      // '' za fizičku kupovinu (broj čita OCR)
+  receiptFile: File | null;    // slika računa za fizičku kupovinu
+  photoFiles: File[];
   issueType: string;
   issueDescription: string;
 }

@@ -8,12 +8,24 @@ public interface IClaimService
 
     Task<Claim> CreateAsync(Claim claim);
 
+    // Reklamacije jednog korisnika (sa Purchase+Product) — za listu na dashboardu.
+    Task<IReadOnlyList<Claim>> GetByUserAsync(string userId);
+
+    // Jedna reklamacija sa Purchase+Product — za ekran detalja.
+    Task<Claim?> GetDetailAsync(int id);
+
     // Mijenja status uz provjeru state machine-a (T2.3). Baca ako je prelaz nevalidan.
     Task UpdateStatusAsync(int claimId, ClaimStatus newStatus);
 
+    // Veže reklamaciju za kupovinu (fizička se razrješava tek nakon OCR-a u pipeline-u).
+    Task LinkPurchaseAsync(int claimId, int purchaseId);
+
     // T9 — atomski upisuje rizik i fiksira odluku gate-a (prelaz uz provjeru).
-    Task ApplyDecisionAsync(int claimId, double riskScore, ClaimStatus newStatus);
+    Task ApplyDecisionAsync(int claimId, double? riskScore, ClaimStatus newStatus);
 
     // T9.3 — upisuje operatersko LLM objašnjenje nakon fiksirane odluke.
     Task SetExplanationAsync(int claimId, string aiExplanation);
+
+    // Upisuje sažetak AI nalaza (AnalysisJson) za ekran detalja.
+    Task SaveAnalysisAsync(int claimId, string analysisJson);
 }

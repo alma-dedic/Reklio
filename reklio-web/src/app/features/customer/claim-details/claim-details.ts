@@ -1,6 +1,6 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { Subject, switchMap, take, takeUntil, takeWhile, timer } from 'rxjs';
 import { ClaimsService } from '../../../core/claims/claims.service';
 import { ClaimDetail } from '../../../core/claims/claim.models';
 import { claimStatusLabel } from '../../../shared/status-labels';
@@ -24,10 +24,20 @@ export class ClaimDetails implements OnDestroy {
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
     // T3.4 — polling dok je reklamacija u obradi; prekida se na ngOnDestroy.
+    // Nastavljamo dok status nije konačan I dok AI nalaz nije upisan — status se
+    // snima par sekundi prije AnalysisJson snapshot-a, pa bez ovoga ekran zamrzne
+    // na "Čeka se...". take(60) je sigurnosni limit (~3 min).
     timer(0, 3000)
       .pipe(
+        take(60),
         switchMap(() => this.claims.getClaim(id)),
-        takeWhile((claim) => claim.status === 'Processing' || claim.status === 'Submitted', true),
+        takeWhile(
+          (claim) =>
+            claim.status === 'Processing' ||
+            claim.status === 'Submitted' ||
+            claim.analysis === null,
+          true,
+        ),
         takeUntil(this.destroy$),
       )
       .subscribe({

@@ -47,9 +47,9 @@
               <path d="M12 16V4" /><path d="M8 8l4-4 4 4" /><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
             </svg>
             <span class="drop__title">Uploadujte fotografiju računa</span>
-            <span class="drop__sub">JPG, PNG do 10MB</span>
-            @if (receiptFileName()) {
-              <span class="drop__file mono">{{ receiptFileName() }}</span>
+            <span class="drop__sub">JPG, PNG do 8MB</span>
+            @if (receiptFile(); as file) {
+              <span class="drop__file mono">{{ file.name }}</span>
             }
           </label>
         } @else {
@@ -63,7 +63,7 @@
 
       @if (step() === 2) {
         <h2 class="panel__title">Fotografije proizvoda</h2>
-        <p class="panel__sub">Dodajte do 5 fotografija koje jasno prikazuju problem.</p>
+        <p class="panel__sub">Dodajte do {{ maxPhotos }} fotografije koje jasno prikazuju problem.</p>
 
         <label class="drop">
           <input type="file" accept="image/*" multiple hidden (change)="onPhotosSelected($event)" />
@@ -74,15 +74,15 @@
           <span class="drop__title">Prevucite fotografije ili kliknite za odabir</span>
         </label>
 
-        @if (photoFileNames().length > 0) {
+        @if (photoFiles().length > 0) {
           <div class="thumbs">
-            @for (name of photoFileNames(); track name) {
+            @for (photo of photoFiles(); track photo.name + $index; let i = $index) {
               <span class="thumb">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" />
                   <path d="M21 16l-5-5-9 8" />
                 </svg>
-                <button type="button" class="thumb__remove" (click)="removePhoto(name)" aria-label="Ukloni">×</button>
+                <button type="button" class="thumb__remove" (click)="removePhoto(i)" aria-label="Ukloni">×</button>
               </span>
             }
           </div>
@@ -125,11 +125,11 @@
           </div>
           <div class="summary__row">
             <span>Dokaz kupovine</span>
-            <strong>{{ purchaseType() === 'InStore' ? receiptFileName() : form.controls.documentNumber.value }}</strong>
+            <strong>{{ purchaseType() === 'InStore' ? receiptFile()?.name : form.controls.documentNumber.value }}</strong>
           </div>
           <div class="summary__row">
             <span>Fotografije</span>
-            <strong>{{ photoFileNames().length }} dodane</strong>
+            <strong>{{ photoFiles().length }} dodane</strong>
           </div>
           <div class="summary__row">
             <span>Vrsta problema</span>
@@ -151,11 +151,26 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn btn--secondary" [style.visibility]="step() === 1 ? 'hidden' : 'visible'"
-              (click)="back()">Nazad</button>
-      <button type="button" class="btn btn--primary" [disabled]="!canGoNext() || submitting()" (click)="next()">
-        {{ submitting() ? 'Slanje...' : (isLastStep() ? 'Pošalji reklamaciju' : 'Dalje') }}
-      </button>
+      <button type="button" class="btn btn--ghost" (click)="cancel()">Odustani</button>
+      <div class="actions__nav">
+        <button type="button" class="btn btn--secondary" [style.visibility]="step() === 1 ? 'hidden' : 'visible'"
+                (click)="back()">Nazad</button>
+        <button type="button" class="btn btn--primary" [disabled]="!canGoNext() || submitting()" (click)="next()">
+          {{ submitting() ? 'Slanje...' : (isLastStep() ? 'Pošalji reklamaciju' : 'Dalje') }}
+        </button>
+      </div>
     </div>
   </div>
+
+  @if (showCancelConfirm()) {
+    <app-confirm-dialog
+      title="Odustati od reklamacije?"
+      message="Uneseni podaci će biti izgubljeni."
+      confirmText="Da, odustani"
+      cancelText="Nastavi unos"
+      [danger]="true"
+      (confirmed)="confirmCancel()"
+      (cancelled)="showCancelConfirm.set(false)"
+    />
+  }
 </div>

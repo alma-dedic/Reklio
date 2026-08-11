@@ -19,6 +19,9 @@ reklio-ai/models/
 reklio-ai/tools/data/
 reklio-ai/chroma_db/
 
+# Uploadovani dokazi (runtime, ne u git)
+Reklio.Api/App_Data/
+
 # Ostalo
 .env
 .idea/

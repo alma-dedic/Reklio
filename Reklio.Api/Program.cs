@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Reklio.Api.BackgroundJobs;
@@ -34,7 +35,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddDbContext<ReklioDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        // EF tools (10.0.5) su stariji od runtime-a (10.0.10) → lažni "pending changes"
+        // pri MigrateAsync. Migracije su tačne; suzbijamo taj warning-kao-grešku.
+        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services
     .AddIdentityCore<User>(options =>
@@ -53,6 +57,7 @@ builder.Services.AddScoped<IClaimService, ClaimService>();
 builder.Services.AddScoped<IClaimEvidenceService, ClaimEvidenceService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReceiptValidationService, ReceiptValidationService>();
+builder.Services.AddSingleton<IFileStorageService, ClaimFileStorage>();
 
 // T9.1 — deterministički gate je čista funkcija bez stanja.
 builder.Services.AddSingleton<IDecisionGate, DecisionGate>();

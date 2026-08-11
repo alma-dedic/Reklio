@@ -9,6 +9,8 @@
 
 .wizard {
   padding: 24px 36px;
+  // navy (#101b2d) sa prozirnošću → optički tanji/mekši okvir
+  border: 1px solid rgba(16, 27, 45, 0.4);
 }
 
 .screen-title {
@@ -287,6 +289,7 @@
 .actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 18px;
   padding-top: 16px;
   border-top: 0.5px solid #eef0f3;
@@ -294,5 +297,24 @@
   .btn {
     font-size: 14px;
     padding: 12px 24px;
+  }
+
+  .actions__nav {
+    display: flex;
+    gap: 12px;
+  }
+
+  // Tercijarni izlaz iz toka — vizuelno odvojen od navigacije (Nazad/Dalje).
+  .btn--ghost {
+    background: none;
+    border: none;
+    color: #6b7280;
+    padding: 12px 8px;
+    cursor: pointer;
+
+    &:hover {
+      color: #dc2626;
+      text-decoration: underline;
+    }
   }
 }

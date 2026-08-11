@@ -7,7 +7,7 @@ public class Claim
     // Podnosilac reklamacije.
     public string UserId { get; set; } = string.Empty;
 
-    public int PurchaseId { get; set; }
+    public int? PurchaseId { get; set; }
 
     // Operater koji je pregledao (null dok se ne eskalira/dodijeli).
     public string? OperatorId { get; set; }
@@ -24,13 +24,16 @@ public class Claim
     // Popunjava pipeline/operater kasnije.
     public string? AiExplanation { get; set; }
 
+    // Snapshot AI nalaza za ekran detalja 
+    public string? AnalysisJson { get; set; }
+
     public DateTime SubmittedAt { get; set; }
 
     public User User { get; set; } = null!;
 
     public User? Operator { get; set; }
 
-    public Purchase Purchase { get; set; } = null!;
+    public Purchase? Purchase { get; set; }
 
     public ICollection<ClaimEvidence> Evidence { get; set; } = new List<ClaimEvidence>();
 

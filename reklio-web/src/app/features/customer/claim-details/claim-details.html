@@ -30,6 +30,12 @@
       </section>
     }
 
+    @if (c.explanation) {
+      <section class="card">
+        <p style="margin: 0; line-height: 1.6;">{{ c.explanation }}</p>
+      </section>
+    }
+
     <div class="stepper">
       <span class="st">
         <span class="st__dot st__dot--done">
@@ -83,9 +89,6 @@
       </div>
     </section>
 
-    <section class="card support">
-      <button type="button" class="btn btn--secondary">Kontaktirajte podršku</button>
-    </section>
   } @else {
     <div class="card empty">Reklamacija nije pronađena.</div>
   }
