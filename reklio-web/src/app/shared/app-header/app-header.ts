@@ -1,10 +1,11 @@
 import { Component, HostListener, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { NotificationBell } from '../notification-bell/notification-bell';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink],
+  imports: [RouterLink, NotificationBell],
   templateUrl: './app-header.html',
   styleUrl: './app-header.scss',
 })

@@ -7,6 +7,7 @@ from openai import OpenAI
 from ..config import (
     CHROMA_COLLECTION, CHROMA_DIR, EMBEDDING_MODEL, OPENAI_API_KEY, OPENAI_MODEL,
 )
+from ..schemas.chat import ChatResponse
 from ..schemas.policy import PolicyResponse
 
 _SCHEMA = {
@@ -32,6 +33,26 @@ _SYSTEM = (
     "Pazi na razliku garancija/reklamacija naspram povrata/odustanka — dijele riječi ali "
     "su različite. Kod kolizije opšteg pravila i izuzetka, primijeni izuzetak. "
     "cited_article citiraj iz oznaka [izvor | član], u formatu 'izvor — Član X'."
+)
+
+
+_CHAT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "answer": {"type": "string"},
+        "cited_article": {"type": ["string", "null"]},
+    },
+    "required": ["answer", "cited_article"],
+    "additionalProperties": False,
+}
+
+_CHAT_SYSTEM = (
+    "Ti si asistent za pitanja o garanciji i reklamacijama (TehnoDom). Odgovaraš "
+    "ISKLJUČIVO na osnovu priloženih članova pravilnika. Ako odgovor nije u njima, reci "
+    "da ne znaš i uputi na korisničku podršku — ne izmišljaj i ne koristi opšte znanje. "
+    "Odgovaraj kratko i jasno, na bosanskom. NEMAŠ pristup podacima korisnika ni statusu "
+    "reklamacija; ako pitaju za status svoje reklamacije, reci da to vide na ekranu detalja. "
+    "cited_article: iz oznaka [izvor | član] u formatu 'izvor — Član X', ili null."
 )
 
 
@@ -76,6 +97,33 @@ class RagService:
             ],
         )
         return PolicyResponse(**json.loads(response.choices[0].message.content))
+
+    def chat(self, message: str, history) -> ChatResponse:
+        # Isti korpus/retriever kao /analyze/policy, ali konverzacijski. Bez korisničkih podataka.
+        chunks = self._retriever.invoke(message)
+        context = "\n\n".join(
+            f"[{c.metadata.get('source', '?')} | {c.metadata.get('article', '')}]\n{c.page_content}"
+            for c in chunks
+        )
+
+        messages = [{"role": "system", "content": _CHAT_SYSTEM}]
+        for m in history[-6:]:
+            role = "assistant" if m.role == "assistant" else "user"
+            messages.append({"role": role, "content": m.content})
+        messages.append({
+            "role": "user",
+            "content": f"PITANJE:\n{message}\n\nČLANOVI PRAVILNIKA:\n{context}",
+        })
+
+        response = self._client.chat.completions.create(
+            model=OPENAI_MODEL,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "chat", "strict": True, "schema": _CHAT_SCHEMA},
+            },
+            messages=messages,
+        )
+        return ChatResponse(**json.loads(response.choices[0].message.content))
 
 
 rag_service = RagService()

@@ -37,29 +37,23 @@
     }
 
     <div class="stepper">
-      <span class="st">
-        <span class="st__dot st__dot--done">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7.5" />
-          </svg>
+      @for (label of steps; track label; let i = $index) {
+        @if (i > 0) {
+          <span class="st__line" [class.st__line--done]="stepState(i) === 'done'"></span>
+        }
+        <span class="st">
+          <span class="st__dot"
+                [class.st__dot--done]="stepState(i + 1) === 'done'"
+                [class.st__dot--active]="stepState(i + 1) === 'active'">
+            @if (stepState(i + 1) === 'done') {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            }
+          </span>
+          <span class="st__label" [class.st__label--active]="stepState(i + 1) !== 'pending'">{{ label }}</span>
         </span>
-        <span class="st__label st__label--active">Poslano</span>
-      </span>
-      <span class="st__line st__line--done"></span>
-      <span class="st">
-        <span class="st__dot st__dot--active"></span>
-        <span class="st__label st__label--active">AI analiza</span>
-      </span>
-      <span class="st__line"></span>
-      <span class="st">
-        <span class="st__dot"></span>
-        <span class="st__label">Pregled</span>
-      </span>
-      <span class="st__line"></span>
-      <span class="st">
-        <span class="st__dot"></span>
-        <span class="st__label">Odluka</span>
-      </span>
+      }
     </div>
 
     <section class="card analysis">

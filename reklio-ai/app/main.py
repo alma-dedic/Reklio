@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .routers import explain, fraud, ocr, policy, vision
+from .routers import chat, explain, fraud, ocr, policy, vision
 from .services.model_service import model_service
 from .services.rag_service import rag_service
 
@@ -21,6 +21,7 @@ app.include_router(ocr.router)
 app.include_router(policy.router)
 app.include_router(vision.router)
 app.include_router(explain.router)
+app.include_router(chat.router)
 
 
 @app.get("/health")

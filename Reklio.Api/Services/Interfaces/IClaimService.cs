@@ -34,4 +34,7 @@ public interface IClaimService
 
     // Upisuje sažetak AI nalaza (AnalysisJson) za ekran detalja.
     Task SaveAnalysisAsync(int claimId, string analysisJson);
+
+    // Ažurira samo korisničko objašnjenje unutar AnalysisJson (npr. nakon operaterske odluke).
+    Task UpdateCustomerExplanationAsync(int claimId, string text);
 }

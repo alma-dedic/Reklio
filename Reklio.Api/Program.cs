@@ -102,6 +102,13 @@ builder.Services.AddHttpClient<IExplanationService, ExplanationService>(client =
         builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
 });
 
+// T10.1 — chatbot (RAG nad pravilnikom) zove Python (FastAPI).
+builder.Services.AddHttpClient<IChatService, ChatService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AiService:BaseUrl"] ?? "http://127.0.0.1:8000");
+});
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
 
 builder.Services

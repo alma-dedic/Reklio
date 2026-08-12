@@ -223,9 +223,9 @@ reklamacije, na prirodnom jeziku.
 > odbrani) veliki.
 
 **Taskovi:**
-- [ ] T10.1 — RAG upiti nad istim korpusom kao EPIC 7, bez korisničkog konteksta
-- [ ] T10.2 — Pitanja koja pokriva: trajanje garancije, izuzeci, kako se podnosi reklamacija, rokovi
-- [ ] T10.3 — Minimalan Angular chat widget (floating bubble + prozor)
+- [x] T10.1 — RAG upiti nad istim korpusom kao EPIC 7, bez korisničkog konteksta
+- [x] T10.2 — Pitanja koja pokriva: trajanje garancije, izuzeci, kako se podnosi reklamacija, rokovi
+- [x] T10.3 — Minimalan Angular chat widget (floating bubble + prozor)
 
 ---
 
@@ -247,9 +247,9 @@ AI nalazima na jednom mjestu.
 obrađena, pošto ne čekam na ekranu.
 
 **Taskovi:**
-- [ ] T12.1 — In-app notifikacija — tabela, zvonce sa brojem nepročitanih
-- [ ] T12.2 — Okidač: promjena statusa `Claim` generiše notifikaciju
-- [ ] T12.3 — "Označi pročitano" akcija
+- [x] T12.1 — In-app notifikacija — tabela, zvonce sa brojem nepročitanih
+- [x] T12.2 — Okidač: promjena statusa `Claim` generiše notifikaciju
+- [x] T12.3 — "Označi pročitano" akcija
 
 ---
 

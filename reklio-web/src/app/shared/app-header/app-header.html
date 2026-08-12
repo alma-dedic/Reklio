@@ -7,12 +7,7 @@
 
     <div class="actions">
       @if (showNotifications()) {
-        <button type="button" class="iconbtn" aria-label="Obavještenja" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-            <path d="M6 9a6 6 0 1 1 12 0c0 3.6 1 5 1.8 5.7.4.3.2 1.3-.4 1.3H4.6c-.6 0-.8-1-.4-1.3C5 14 6 12.6 6 9Z" />
-            <path d="M10 19a2 2 0 0 0 4 0" />
-          </svg>
-        </button>
+        <app-notification-bell />
       }
 
       <div class="account">

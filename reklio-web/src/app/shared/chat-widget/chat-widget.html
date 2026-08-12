@@ -1,0 +1,57 @@
+@if (!open()) {
+  <button type="button" class="cw-bubble" (click)="toggle()" aria-label="Pomoć — pitaj o pravilniku">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2Z" />
+    </svg>
+  </button>
+}
+
+@if (open()) {
+  <div class="cw-window">
+    <div class="cw-head">
+      <div>
+        <div class="cw-head__title">Pomoćnik</div>
+        <div class="cw-head__sub">Pitanja o garanciji i reklamacijama</div>
+      </div>
+      <button type="button" class="cw-close" (click)="close()" aria-label="Zatvori">✕</button>
+    </div>
+
+    <div class="cw-messages" #messages>
+      @if (items().length === 0) {
+        <div class="cw-greeting">
+          <p>Zdravo! Pitaj me o garanciji i reklamacijama. Npr:</p>
+          <div class="cw-examples">
+            @for (ex of examples; track ex) {
+              <button type="button" class="cw-example" (click)="ask(ex)">{{ ex }}</button>
+            }
+          </div>
+        </div>
+      }
+
+      @for (m of items(); track $index) {
+        <div class="cw-msg" [class.cw-msg--user]="m.role === 'user'">
+          <div class="cw-bubble-msg">{{ m.content }}</div>
+          @if (m.source) {
+            <div class="cw-source">Izvor: {{ m.source }}</div>
+          }
+        </div>
+      }
+
+      @if (sending()) {
+        <div class="cw-msg">
+          <div class="cw-bubble-msg cw-typing">piše…</div>
+        </div>
+      }
+    </div>
+
+    <form class="cw-input" (ngSubmit)="onSubmit()">
+      <input type="text" name="q" autocomplete="off" placeholder="Napišite pitanje..."
+             [ngModel]="input()" (ngModelChange)="input.set($event)" [disabled]="sending()" />
+      <button type="submit" class="cw-send" [disabled]="sending() || !input().trim()" aria-label="Pošalji">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M4 12h15" /><path d="M13 6l6 6-6 6" />
+        </svg>
+      </button>
+    </form>
+  </div>
+}

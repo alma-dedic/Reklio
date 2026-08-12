@@ -16,6 +16,7 @@ public class NotificationService : INotificationService
 
     public async Task<Notification> CreateAsync(Notification notification)
     {
+        notification.CreatedAt = DateTime.UtcNow;
         _db.Notifications.Add(notification);
         await _db.SaveChangesAsync();
         return notification;
@@ -25,17 +26,28 @@ public class NotificationService : INotificationService
     {
         return await _db.Notifications
             .AsNoTracking()
+            .Include(n => n.Claim)
             .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.Id)
+            .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task MarkAsReadAsync(int notificationId)
+    public async Task<int> GetUnreadCountAsync(string userId)
     {
-        var notification = await _db.Notifications.FindAsync(notificationId)
-            ?? throw new KeyNotFoundException($"Notifikacija {notificationId} ne postoji.");
+        return await _db.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
+    }
 
-        notification.IsRead = true;
-        await _db.SaveChangesAsync();
+    public async Task MarkReadAsync(int notificationId, string userId)
+    {
+        await _db.Notifications
+            .Where(n => n.Id == notificationId && n.UserId == userId && !n.IsRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+    }
+
+    public async Task MarkAllReadAsync(string userId)
+    {
+        await _db.Notifications
+            .Where(n => n.UserId == userId && !n.IsRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
     }
 }

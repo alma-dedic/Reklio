@@ -139,6 +139,10 @@ public class OperatorController : ControllerBase
             IsRead = false,
         });
 
+        // Osvježi korisničko objašnjenje da odgovara ishodu (inače ekran detalja
+        // pokazuje stari tekst iz eskalacije uz "Odobreno/Odbijeno" banner).
+        await _claims.UpdateCustomerExplanationAsync(id, $"Vaša reklamacija je {verb} nakon pregleda operatera.");
+
         return Ok(new { status = status.ToString() });
     }
 

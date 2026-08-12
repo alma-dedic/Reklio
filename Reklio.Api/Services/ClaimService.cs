@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Reklio.Api.Data;
+using Reklio.Api.DTOs.Ai;
 using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
 
@@ -98,6 +100,26 @@ public class ClaimService : IClaimService
             ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
 
         claim.AnalysisJson = analysisJson;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateCustomerExplanationAsync(int claimId, string text)
+    {
+        var claim = await _db.Claims.FindAsync(claimId)
+            ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
+
+        if (string.IsNullOrWhiteSpace(claim.AnalysisJson))
+        {
+            return;
+        }
+
+        var snapshot = JsonSerializer.Deserialize<ClaimAnalysisSnapshot>(claim.AnalysisJson);
+        if (snapshot is null)
+        {
+            return;
+        }
+
+        claim.AnalysisJson = JsonSerializer.Serialize(snapshot with { CustomerExplanation = text });
         await _db.SaveChangesAsync();
     }
 
