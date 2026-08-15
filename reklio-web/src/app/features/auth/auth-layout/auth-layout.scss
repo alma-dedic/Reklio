@@ -63,7 +63,7 @@
   line-height: 1.65;
   color: #9aa5b4;
   margin: 0 0 2.5rem;
-  max-width: 420px;
+  text-align: justify;
 }
 
 .scan {
@@ -73,6 +73,7 @@
   border-radius: 14px;
   padding: 20px;
   overflow: hidden;
+  margin-bottom: 2rem;
 }
 
 .scan__file {
@@ -83,62 +84,86 @@
 }
 
 .scan__frame {
-  background: #1f3049;
-  border-radius: 8px;
-  height: 150px;
   position: relative;
   overflow: hidden;
+  background: #1f3049;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .scan__line {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
-  height: 3px;
-  background: var(--teal);
+  top: -70px;
+  height: 70px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 194, 178, 0.18),
+    transparent
+  );
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .scan__line {
-    animation: scanmove 3s ease-in-out infinite;
+    animation: scanmove 3.2s ease-in-out infinite;
   }
 }
 
 @keyframes scanmove {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(135px); }
-  100% { transform: translateY(0); }
+  0% { top: -70px; }
+  100% { top: 100%; }
 }
 
-.scan__tag {
-  position: absolute;
-  left: 14px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: #5dcaa5;
-  border: 0.5px solid #2e5a4e;
-  background: rgba(0, 194, 178, 0.1);
-  border-radius: 6px;
-  padding: 4px 10px;
-}
-
-.scan__tag--amount { top: 22px; }
-.scan__tag--date { top: 78px; }
-
-.chips {
+.scan__step {
+  position: relative;
+  z-index: 1;
   display: flex;
+  align-items: center;
   gap: 12px;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid #2a3a52;
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
-.chip {
+.scan__step-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(0, 194, 178, 0.14);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg { width: 17px; height: 17px; }
+}
+
+.scan__step-label {
+  font-size: 14px;
+  color: #cdd6e3;
+}
+
+.scan__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
   font-size: 14px;
   color: #9aa5b4;
-  background: rgba(0, 194, 178, 0.12);
-  border-radius: 20px;
-  padding: 6px 16px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--teal);
+  }
 }
 
 .form-panel {

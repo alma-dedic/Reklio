@@ -25,9 +25,24 @@ export interface ClaimDetail extends ClaimSummary {
   analysis: ClaimAnalysis | null;
 }
 
+// Jedna stavka računa ponuđena u dropdownu.
+export interface ResolveProduct {
+  purchaseId: number;
+  productName: string;
+  category: string;
+  price: number;
+}
+
+export interface ResolveReceiptResult {
+  documentNumber: string | null;
+  found: boolean;
+  products: ResolveProduct[];
+}
+
 export interface CreateClaimPayload {
   purchaseType: PurchaseType;
   documentNumber: string;      // '' za fizičku kupovinu (broj čita OCR)
+  purchaseId: number | null;   // izabrana stavka iz dropdowna; null = nije pronađeno
   receiptFile: File | null;    // slika računa za fizičku kupovinu
   photoFiles: File[];
   issueType: string;

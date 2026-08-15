@@ -19,14 +19,21 @@ from generate_receipts import connect, degrade, render_receipt  # noqa: E402
 OUT_DIR = os.path.join(HERE, "data", "hero")
 NOW = datetime.utcnow()
 
-# (doc, product_id, product_name, branch, is_online, dana_prije, iznos, demo_namjena)
+# (doc, branch, is_online, dana_prije, [(product_id, name, amount), ...], demo_namjena)
+# Više stavki na istom računu = više Purchase redova sa istim DocumentNumber.
 HEROES = [
-    ("R-2026-001", 7, "USB-C kabl 1m",       "Tuzla",           False, 20, 19.90,
+    ("R-2026-001", "Tuzla",           False, 20,
+     [(7, "USB-C kabl 1m", 19.90)],
      "IN-STORE → priloži hero/R-2026-001.png + connector foto → očekivano ODOBRENO"),
-    ("R-2026-002", 1, "Pametni telefon X20", "Sarajevo Centar", False, 40, 899.00,
+    ("R-2026-002", "Sarajevo Centar", False, 40,
+     [(1, "Pametni telefon X20", 899.00)],
      "IN-STORE → priloži hero/R-2026-002.png + screencrack foto → očekivano ESKALACIJA"),
-    ("R-2026-003", 4, "Kamera GX10",         "Online",          True,  15, 459.00,
+    ("R-2026-003", "Online",          True,  15,
+     [(4, "Kamera GX10", 459.00)],
      "ONLINE → ukucaj broj R-2026-003 + bilo koja foto"),
+    ("R-2026-004", "Sarajevo Centar", False, 25,
+     [(2, "Laptop Pro 15", 1890.00), (7, "USB-C kabl 1m", 19.90), (5, "Bežične slušalice Q3", 149.00)],
+     "IN-STORE MULTI → priloži hero/R-2026-004.png → dropdown 3 proizvoda, izaberi Laptop"),
 ]
 
 
@@ -51,23 +58,28 @@ def main():
         os.remove(os.path.join(OUT_DIR, old))
 
     print("Hero kupovine ubačene:\n")
-    for doc, pid_product, name, branch, is_online, days_ago, amount, note in HEROES:
+    for doc, branch, is_online, days_ago, lines, note in HEROES:
         pdate = NOW - timedelta(days=days_ago)
         ptype = "Online" if is_online else "InStore"
-        cur.execute(
-            "INSERT INTO Purchases (ProductId, PurchaseType, DocumentNumber, Branch, PurchaseDate, Amount) "
-            "OUTPUT INSERTED.Id VALUES (?, ?, ?, ?, ?, ?)",
-            pid_product, ptype, doc, branch, pdate, amount)
-        pid = cur.fetchone()[0]
+
+        pids = []
+        for product_id, name, amount in lines:
+            cur.execute(
+                "INSERT INTO Purchases (ProductId, PurchaseType, DocumentNumber, Branch, PurchaseDate, Amount) "
+                "OUTPUT INSERTED.Id VALUES (?, ?, ?, ?, ?, ?)",
+                product_id, ptype, doc, branch, pdate, amount)
+            pids.append(cur.fetchone()[0])
 
         img_note = ""
         if not is_online:
-            img = degrade(render_receipt(doc, branch, pdate, float(amount), name))
+            items = [(name, float(amount)) for _, name, amount in lines]
+            img = degrade(render_receipt(doc, branch, pdate, items))
             path = os.path.join(OUT_DIR, f"{doc}.png")
             img.save(path)
             img_note = f"  slika: {path}"
 
-        print(f"  {doc}  ({ptype}, {name}, {amount} KM)  PurchaseId={pid}")
+        total = sum(float(a) for _, _, a in lines)
+        print(f"  {doc}  ({ptype}, {len(lines)} stavki, {total:.2f} KM)  PurchaseIds={pids}")
         print(f"     {note}{img_note}\n")
 
     cn.commit()

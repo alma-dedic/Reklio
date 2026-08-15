@@ -20,7 +20,7 @@ public class JwtTokenService : IJwtTokenService
 
     public (string Token, DateTime ExpiresAt) CreateToken(User user)
     {
-        var expiresAt = DateTime.UtcNow.AddHours(_options.ExpiryHours);
+        var expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenMinutes);
 
         var claims = new List<SecurityClaim>
         {

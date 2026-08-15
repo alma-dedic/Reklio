@@ -12,8 +12,10 @@ export interface LoginRequest {
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   expiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
   id: string;
   fullName: string;
   email: string;

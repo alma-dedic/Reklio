@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Reklio.Api.Data;
 
@@ -11,9 +12,11 @@ using Reklio.Api.Data;
 namespace Reklio.Api.Data.Migrations
 {
     [DbContext(typeof(ReklioDbContext))]
-    partial class ReklioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812082327_AddRefreshTokens")]
+    partial class AddRefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -356,7 +359,7 @@ namespace Reklio.Api.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("Branch", "DocumentNumber", "PurchaseDate", "ProductId")
+                    b.HasIndex("Branch", "DocumentNumber", "PurchaseDate")
                         .IsUnique();
 
                     b.ToTable("Purchases");

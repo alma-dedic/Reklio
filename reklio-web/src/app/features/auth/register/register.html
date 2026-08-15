@@ -1,6 +1,6 @@
 <app-auth-layout
-  heading="Napravite nalog za par sekundi."
-  subheading="Nalog vam treba samo da prijavite i pratite svoje reklamacije - bez potvrde putem emaila."
+  heading="Reklamacije, riješene pametnije."
+  subheading="AI analizira dokaze i uslove garancije — jasne slučajeve riješi odmah, a operater provjeri one složenije."
 >
   <h2 class="auth-title">Registracija</h2>
   <p class="auth-subtitle">Unesite podatke da napravite nalog.</p>
@@ -15,7 +15,7 @@
       <input
         type="text"
         class="auth-field__input"
-        placeholder="Amina Karić"
+        placeholder="Vaše ime i prezime"
         formControlName="fullName"
         [class.is-invalid]="form.controls.fullName.touched && form.controls.fullName.invalid"
       />
@@ -40,13 +40,29 @@
 
     <label class="auth-field">
       <span class="auth-field__label">Lozinka</span>
-      <input
-        type="password"
-        class="auth-field__input"
-        placeholder="••••••••"
-        formControlName="password"
-        [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
-      />
+      <div class="auth-field__pw">
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          class="auth-field__input"
+          placeholder="••••••••"
+          formControlName="password"
+          [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+        />
+        <button type="button" class="pw-toggle" (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Sakrij lozinku' : 'Prikaži lozinku'">
+          @if (showPassword()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M3 3l18 18" /><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2" />
+              <path d="M9.9 5.1A9.6 9.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 3.9" />
+              <path d="M6.1 6.1A16.8 16.8 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.3 3.9-.7" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+            </svg>
+          }
+        </button>
+      </div>
       <span
         [class]="
           form.controls.password.touched && form.controls.password.invalid
@@ -60,13 +76,29 @@
 
     <label class="auth-field">
       <span class="auth-field__label">Potvrda lozinke</span>
-      <input
-        type="password"
-        class="auth-field__input"
-        placeholder="••••••••"
-        formControlName="confirmPassword"
-        [class.is-invalid]="form.controls.confirmPassword.touched && form.hasError('passwordMismatch')"
-      />
+      <div class="auth-field__pw">
+        <input
+          [type]="showConfirm() ? 'text' : 'password'"
+          class="auth-field__input"
+          placeholder="••••••••"
+          formControlName="confirmPassword"
+          [class.is-invalid]="form.controls.confirmPassword.touched && form.hasError('passwordMismatch')"
+        />
+        <button type="button" class="pw-toggle" (click)="toggleConfirm()"
+                [attr.aria-label]="showConfirm() ? 'Sakrij lozinku' : 'Prikaži lozinku'">
+          @if (showConfirm()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M3 3l18 18" /><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2" />
+              <path d="M9.9 5.1A9.6 9.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 3.9" />
+              <path d="M6.1 6.1A16.8 16.8 0 0 0 2 12s3.5 7 10 7c1.4 0 2.7-.3 3.9-.7" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+            </svg>
+          }
+        </button>
+      </div>
       @if (form.controls.confirmPassword.touched && form.hasError('passwordMismatch')) {
         <span class="auth-field__error">Lozinke se ne poklapaju.</span>
       }

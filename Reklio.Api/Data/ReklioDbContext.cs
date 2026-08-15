@@ -16,6 +16,7 @@ public class ReklioDbContext : IdentityUserContext<User>
     public DbSet<Claim> Claims => Set<Claim>();
     public DbSet<ClaimEvidence> ClaimEvidence => Set<ClaimEvidence>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -42,8 +43,9 @@ public class ReklioDbContext : IdentityUserContext<User>
             entity.Property(p => p.Branch).HasMaxLength(100).IsRequired();
             entity.Property(p => p.Amount).HasPrecision(18, 2);
 
-            // T2.2 — prirodni ključ za deduplikaciju: jedna transakcija = jedan red.
-            entity.HasIndex(p => new { p.Branch, p.DocumentNumber, p.PurchaseDate }).IsUnique();
+            // T2.2 — prirodni ključ: jedna stavka računa = jedan red. Isti račun (broj+datum+
+            // poslovnica) može imati više proizvoda, ali ne isti proizvod dvaput.
+            entity.HasIndex(p => new { p.Branch, p.DocumentNumber, p.PurchaseDate, p.ProductId }).IsUnique();
 
             entity.HasOne(p => p.Product)
                 .WithMany(p => p.Purchases)
@@ -83,6 +85,17 @@ public class ReklioDbContext : IdentityUserContext<User>
             entity.HasOne(e => e.Claim)
                 .WithMany(c => c.Evidence)
                 .HasForeignKey(e => e.ClaimId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(t => t.Token).HasMaxLength(200).IsRequired();
+            entity.HasIndex(t => t.Token).IsUnique();
+
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

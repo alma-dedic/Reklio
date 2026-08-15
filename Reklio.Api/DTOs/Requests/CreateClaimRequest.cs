@@ -1,13 +1,15 @@
 namespace Reklio.Api.DTOs.Requests;
 
-// Multipart form za podnošenje reklamacije (pravi tok, EPIC 4 dovršetak).
-// Online: unosi se DocumentNumber (nema slike računa).
-// InStore: prilaže se Receipt slika (broj se čita OCR-om u pipeline-u).
+// Multipart form za podnošenje reklamacije.
+// Proizvod se bira u wizardu (dropdown iz resolve-a) → šalje se PurchaseId.
+// InStore i dalje prilaže Receipt sliku (za validaciju + operatera).
 public class CreateClaimRequest
 {
     public string PurchaseType { get; set; } = "InStore";   // "InStore" | "Online"
 
-    public string? DocumentNumber { get; set; }             // obavezan za Online
+    public string? DocumentNumber { get; set; }             // referenca (razrješavanje ide preko PurchaseId)
+
+    public int? PurchaseId { get; set; }                    // izabrana stavka računa; null = kupovina nije pronađena
 
     public string IssueType { get; set; } = string.Empty;
 

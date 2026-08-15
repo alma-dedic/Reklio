@@ -56,8 +56,35 @@
           <label class="field">
             <span class="field__label">ID narudžbe ili broj e-računa</span>
             <input type="text" class="field__input mono" placeholder="npr. NR-2026-004821"
-                   [formControl]="form.controls.documentNumber" />
+                   [formControl]="form.controls.documentNumber" (input)="resetResolve()" />
           </label>
+        }
+
+        @if (resolving()) {
+          <div class="resolve-note">Provjeravam račun...</div>
+        } @else if (resolveResult(); as result) {
+          @if (result.found) {
+            <label class="field resolve-field">
+              <span class="field__label">Za koji proizvod prijavljujete reklamaciju?</span>
+              <select class="field__input" (change)="onProductSelected($event)">
+                <option value="">— izaberite proizvod —</option>
+                @for (p of result.products; track p.purchaseId) {
+                  <option [value]="p.purchaseId" [selected]="selectedPurchaseId() === p.purchaseId">
+                    {{ p.productName }} — {{ p.price }} KM
+                  </option>
+                }
+              </select>
+            </label>
+          } @else {
+            <div class="resolve-note resolve-note--warn">
+              Kupovina s ovim računom nije pronađena. Provjerite broj računa ili pokušajte s jasnijom slikom — reklamacija se ne može podnijeti bez pronađene kupovine.
+            </div>
+          }
+        } @else if (purchaseType() === 'Online') {
+          <button type="button" class="btn btn--secondary resolve-btn"
+                  [disabled]="!canResolve()" (click)="resolve()">
+            Provjeri račun
+          </button>
         }
       }
 
@@ -126,6 +153,10 @@
           <div class="summary__row">
             <span>Dokaz kupovine</span>
             <strong>{{ purchaseType() === 'InStore' ? receiptFile()?.name : form.controls.documentNumber.value }}</strong>
+          </div>
+          <div class="summary__row">
+            <span>Proizvod</span>
+            <strong>{{ selectedProduct()?.productName ?? 'Nije pronađen' }}</strong>
           </div>
           <div class="summary__row">
             <span>Fotografije</span>

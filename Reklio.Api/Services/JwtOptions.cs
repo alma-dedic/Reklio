@@ -10,5 +10,8 @@ public class JwtOptions
 
     public string SigningKey { get; set; } = string.Empty;
 
-    public int ExpiryHours { get; set; } = 8;
+    // Kratak access token (minute), dug refresh token (dani).
+    public int AccessTokenMinutes { get; set; } = 15;
+
+    public int RefreshTokenDays { get; set; } = 7;
 }

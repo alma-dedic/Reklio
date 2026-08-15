@@ -10,4 +10,7 @@ public interface IPurchaseService
     Task<Purchase?> FindByNaturalKeyAsync(string branch, string documentNumber, DateTime purchaseDate);
 
     Task<Purchase?> FindByDocumentNumberAsync(string documentNumber);
+
+    // Sve stavke jednog računa (multi-stavka) — sa učitanim proizvodom, za dropdown izbor.
+    Task<IReadOnlyList<Purchase>> FindAllByDocumentNumberAsync(string documentNumber);
 }

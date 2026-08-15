@@ -2,9 +2,13 @@ namespace Reklio.Api.DTOs.Responses;
 
 public class AuthResponse
 {
-    public string Token { get; set; } = string.Empty;
+    public string AccessToken { get; set; } = string.Empty;
 
     public DateTime ExpiresAt { get; set; }
+
+    public string RefreshToken { get; set; } = string.Empty;
+
+    public DateTime RefreshExpiresAt { get; set; }
 
     public string Id { get; set; } = string.Empty;
 

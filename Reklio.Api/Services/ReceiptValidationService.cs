@@ -1,5 +1,6 @@
 using Reklio.Api.DTOs.Ai;
 using Reklio.Api.DTOs.Validation;
+using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
 
 namespace Reklio.Api.Services;
@@ -26,32 +27,33 @@ public class ReceiptValidationService : IReceiptValidationService
             : ReceiptValidationResult.Valid(purchase.Id);
     }
 
-    public async Task<ReceiptValidationResult> ValidateReceiptAsync(OcrResult ocr)
+    public async Task<ReceiptValidationResult> ValidateReceiptAsync(OcrResult ocr, Purchase selectedPurchase)
     {
-        if (string.IsNullOrWhiteSpace(ocr.DocumentNumber))
+        // Broj sa slike mora odgovarati izabranoj kupovini (hvata zamjenu slike računa).
+        if (string.IsNullOrWhiteSpace(ocr.DocumentNumber) ||
+            !string.Equals(ocr.DocumentNumber.Trim(), selectedPurchase.DocumentNumber,
+                StringComparison.OrdinalIgnoreCase))
         {
-            return ReceiptValidationResult.NotFound();
+            return ReceiptValidationResult.Mismatch(selectedPurchase.Id, ["document_number"]);
         }
 
-        var purchase = await _purchases.FindByDocumentNumberAsync(ocr.DocumentNumber.Trim());
-        if (purchase is null)
-        {
-            return ReceiptValidationResult.NotFound();
-        }
+        // Iznos sa slike je TOTAL računa → poredi sa sumom svih stavki tog dokumenta.
+        var lines = await _purchases.FindAllByDocumentNumberAsync(selectedPurchase.DocumentNumber);
+        var total = lines.Sum(l => l.Amount);
 
         var issues = new List<string>();
-        if (ocr.Amount is null || Math.Abs(ocr.Amount.Value - purchase.Amount) > AmountToleranceKm)
+        if (ocr.Amount is null || Math.Abs(ocr.Amount.Value - total) > AmountToleranceKm)
         {
             issues.Add("amount");
         }
         if (ocr.PurchaseDate is null ||
-            Math.Abs((ocr.PurchaseDate.Value.Date - purchase.PurchaseDate.Date).TotalDays) > DateToleranceDays)
+            Math.Abs((ocr.PurchaseDate.Value.Date - selectedPurchase.PurchaseDate.Date).TotalDays) > DateToleranceDays)
         {
             issues.Add("date");
         }
 
         return issues.Count == 0
-            ? ReceiptValidationResult.Valid(purchase.Id)
-            : ReceiptValidationResult.Mismatch(purchase.Id, issues);
+            ? ReceiptValidationResult.Valid(selectedPurchase.Id)
+            : ReceiptValidationResult.Mismatch(selectedPurchase.Id, issues);
     }
 }

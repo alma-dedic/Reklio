@@ -2,6 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&family=Inter:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap');
 
 :root {
+  /* App je light dizajn — spriječi auto-tamnjenje native kontrola (bijeli caret u dark modu). */
+  color-scheme: light;
   --navy: #101b2d;
   --teal: #00c2b2;
   --teal-link: #00a296;
@@ -149,6 +151,7 @@ body {
   border: 0.5px solid #d8dce3;
   background: #fff;
   color: var(--navy);
+  caret-color: var(--navy);
   padding: 0 14px;
   font-family: var(--font-body);
   font-size: 15px;
@@ -161,6 +164,40 @@ body {
 
 .auth-field__input.is-invalid {
   border-color: #dc2626;
+}
+
+.auth-field__pw {
+  position: relative;
+}
+
+.auth-field__pw .auth-field__input {
+  padding-right: 44px;
+}
+
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: #9aa0ac;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pw-toggle:hover {
+  color: var(--navy);
+}
+
+.pw-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .auth-field__error {
@@ -223,16 +260,5 @@ body {
 .auth-switch a {
   color: var(--teal-link);
   font-weight: 500;
-  text-decoration: none;
-}
-
-.auth-forgot {
-  text-align: right;
-  margin-bottom: 20px;
-}
-
-.auth-forgot a {
-  font-size: 13px;
-  color: var(--teal-link);
   text-decoration: none;
 }

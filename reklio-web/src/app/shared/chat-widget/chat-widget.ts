@@ -31,6 +31,14 @@ export class ChatWidget {
   protected readonly sending = signal(false);
   protected readonly examples = EXAMPLES;
 
+  // Omekšaj sirovi citat ("TehnoDom pravilnik — Član 7") u prijateljski oblik za kupca.
+  protected formatSource(source: string): string {
+    const match = source.match(/[Čč]lan\s*(\d+)/);
+    return match
+      ? `Prema Pravilniku o garanciji, čl. ${match[1]}`
+      : 'Prema Pravilniku o garanciji';
+  }
+
   protected toggle(): void {
     this.open.update((o) => !o);
   }

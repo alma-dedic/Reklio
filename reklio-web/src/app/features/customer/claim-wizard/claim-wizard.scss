@@ -209,6 +209,31 @@
   margin-top: 4px;
 }
 
+.resolve-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.resolve-field {
+  margin-top: 4px;
+}
+
+.resolve-note {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  background: #f6f7f9;
+  color: #6b7280;
+}
+
+.resolve-note--warn {
+  background: #fff4e5;
+  border: 0.5px solid #f0c98a;
+  color: #9a5b00;
+}
+
 .thumbs {
   display: flex;
   gap: 10px;

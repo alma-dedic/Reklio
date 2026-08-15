@@ -3,7 +3,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimsService } from '../../../core/claims/claims.service';
-import { PurchaseType } from '../../../core/claims/claim.models';
+import {
+  PurchaseType,
+  ResolveProduct,
+  ResolveReceiptResult,
+} from '../../../core/claims/claim.models';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
 const STEP_LABELS = ['Kupovina', 'Fotografije', 'Opis', 'Pregled'];
@@ -31,6 +35,11 @@ export class ClaimWizard {
   protected readonly receiptFile = signal<File | null>(null);
   protected readonly photoFiles = signal<File[]>([]);
 
+  // Razrješavanje računa → proizvodi za dropdown.
+  protected readonly resolving = signal(false);
+  protected readonly resolveResult = signal<ResolveReceiptResult | null>(null);
+  protected readonly selectedPurchaseId = signal<number | null>(null);
+
   protected readonly form = this.fb.nonNullable.group({
     documentNumber: [''],
     issueType: ['Oštećenje pri dostavi', [Validators.required]],
@@ -45,13 +54,27 @@ export class ClaimWizard {
 
   protected readonly isLastStep = computed(() => this.step() === STEP_LABELS.length);
 
+  // Ima dovoljno unosa da se pokrene provjera računa (slika ili broj).
+  protected readonly canResolve = computed(() => {
+    const value = this.formValue();
+    return this.purchaseType() === 'InStore'
+      ? this.receiptFile() !== null
+      : (value.documentNumber ?? '').trim().length > 0;
+  });
+
+  // Izabrana stavka (za pregled).
+  protected readonly selectedProduct = computed<ResolveProduct | null>(() => {
+    const id = this.selectedPurchaseId();
+    const products = this.resolveResult()?.products ?? [];
+    return products.find((p) => p.purchaseId === id) ?? null;
+  });
+
   protected readonly canGoNext = computed(() => {
     const value = this.formValue();
     switch (this.step()) {
       case 1:
-        return this.purchaseType() === 'InStore'
-          ? this.receiptFile() !== null
-          : (value.documentNumber ?? '').trim().length > 0;
+        // Mora biti izabran proizvod (pronađena kupovina). Bez kupovine → ne može dalje.
+        return this.selectedPurchaseId() !== null;
       case 2:
         return this.photoFiles().length > 0;
       case 3:
@@ -63,11 +86,17 @@ export class ClaimWizard {
 
   protected setPurchaseType(type: PurchaseType): void {
     this.purchaseType.set(type);
+    this.resetResolve();
   }
 
   protected onReceiptSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
     this.receiptFile.set(file);
+    this.resetResolve();
+    // Čim je slika izabrana → automatski provjeri račun (bez posebnog dugmeta).
+    if (file) {
+      this.resolve();
+    }
   }
 
   protected onPhotosSelected(event: Event): void {
@@ -77,6 +106,45 @@ export class ClaimWizard {
 
   protected removePhoto(index: number): void {
     this.photoFiles.set(this.photoFiles().filter((_, i) => i !== index));
+  }
+
+  // Reset kad se promijeni izvor računa (slika/broj/tip) — traži novu provjeru.
+  protected resetResolve(): void {
+    this.resolveResult.set(null);
+    this.selectedPurchaseId.set(null);
+  }
+
+  protected resolve(): void {
+    if (!this.canResolve() || this.resolving()) {
+      return;
+    }
+    this.resolving.set(true);
+    this.errorMessage.set(null);
+
+    const source$ =
+      this.purchaseType() === 'InStore'
+        ? this.claims.resolveReceipt(this.receiptFile()!)
+        : this.claims.resolvePurchase((this.form.getRawValue().documentNumber ?? '').trim());
+
+    source$.subscribe({
+      next: (result) => {
+        this.resolveResult.set(result);
+        this.resolving.set(false);
+        // Jedan proizvod → automatski izabran.
+        if (result.found && result.products.length === 1) {
+          this.selectedPurchaseId.set(result.products[0].purchaseId);
+        }
+      },
+      error: () => {
+        this.resolving.set(false);
+        this.errorMessage.set('Provjera računa nije uspjela. Pokušajte ponovo.');
+      },
+    });
+  }
+
+  protected onProductSelected(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedPurchaseId.set(value ? Number(value) : null);
   }
 
   protected back(): void {
@@ -129,6 +197,7 @@ export class ClaimWizard {
       .submitClaim({
         purchaseType: this.purchaseType(),
         documentNumber: raw.documentNumber,
+        purchaseId: this.selectedPurchaseId(),
         receiptFile: this.receiptFile(),
         photoFiles: this.photoFiles(),
         issueType: raw.issueType,

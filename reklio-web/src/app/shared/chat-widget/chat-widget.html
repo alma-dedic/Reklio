@@ -32,7 +32,12 @@
         <div class="cw-msg" [class.cw-msg--user]="m.role === 'user'">
           <div class="cw-bubble-msg">{{ m.content }}</div>
           @if (m.source) {
-            <div class="cw-source">Izvor: {{ m.source }}</div>
+            <div class="cw-source">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                <path d="M6 2h9l3 3v17H6Z" /><path d="M14 2v4h4" />
+              </svg>
+              {{ formatSource(m.source) }}
+            </div>
           }
         </div>
       }

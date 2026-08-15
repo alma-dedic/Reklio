@@ -68,29 +68,25 @@ public class ClaimAnalysisPipeline
             ? await _purchases.GetByIdAsync(linkedId)
             : null;
 
-        // 1. + 2. OCR i validacija dokaza kupovine.
+        // 1. + 2. OCR i validacija dokaza kupovine. Proizvod je već izabran u wizardu (claim.PurchaseId).
         OcrResult? ocr = null;
-        ReceiptValidationResult? validation = null;
+        ReceiptValidationResult validation;
 
         var receipt = evidence.FirstOrDefault(e => e.Type == ReceiptEvidenceType);
-        if (receipt is not null)
+        if (purchase is null)
         {
-            // Fizička kupovina: slika je izvor istine — OCR pročita broj, validacija nađe
-            // kupovinu, i tek tada vežemo reklamaciju za nju (razrješavanje).
-            ocr = await _ocr.ExtractReceiptAsync(receipt.FilePath, cancellationToken);
-            validation = await _validation.ValidateReceiptAsync(ocr);
-            if (validation.PurchaseId is int resolvedId)
-            {
-                if (claim.PurchaseId != resolvedId)
-                {
-                    await _claims.LinkPurchaseAsync(claimId, resolvedId);
-                }
-                purchase = await _purchases.GetByIdAsync(resolvedId);
-            }
+            // Kupovina nije izabrana/pronađena → tvrdi uslov za odbijanje.
+            validation = ReceiptValidationResult.NotFound();
         }
-        else if (purchase is not null)
+        else if (receipt is not null)
         {
-            // Online kupovina: nema slike, lookup po broju kupovine (razriješena na submit-u).
+            // Fizička kupovina: OCR sa slike se poredi sa izabranom kupovinom i njenim računom.
+            ocr = await _ocr.ExtractReceiptAsync(receipt.FilePath, cancellationToken);
+            validation = await _validation.ValidateReceiptAsync(ocr, purchase);
+        }
+        else
+        {
+            // Online kupovina: nema slike, kupovina je potvrđena po broju.
             validation = await _validation.ValidateOnlineAsync(purchase.DocumentNumber);
         }
 

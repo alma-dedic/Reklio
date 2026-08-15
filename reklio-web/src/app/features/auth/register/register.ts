@@ -42,6 +42,16 @@ export class Register {
 
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  protected readonly showPassword = signal(false);
+  protected readonly showConfirm = signal(false);
+
+  protected togglePassword(): void {
+    this.showPassword.update((v) => !v);
+  }
+
+  protected toggleConfirm(): void {
+    this.showConfirm.update((v) => !v);
+  }
 
   protected readonly form = this.fb.nonNullable.group(
     {

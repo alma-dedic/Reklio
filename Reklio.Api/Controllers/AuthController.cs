@@ -13,11 +13,16 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly IJwtTokenService _tokenService;
+    private readonly IRefreshTokenService _refreshTokens;
 
-    public AuthController(UserManager<User> userManager, IJwtTokenService tokenService)
+    public AuthController(
+        UserManager<User> userManager,
+        IJwtTokenService tokenService,
+        IRefreshTokenService refreshTokens)
     {
         _userManager = userManager;
         _tokenService = tokenService;
+        _refreshTokens = refreshTokens;
     }
 
     [HttpPost("register")]
@@ -44,7 +49,14 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
         }
 
-        return StatusCode(StatusCodes.Status201Created, BuildAuthResponse(user));
+        // Registracija ne loguje automatski — bez tokena, korisnik ide na login.
+        return StatusCode(StatusCodes.Status201Created, new
+        {
+            id = user.Id,
+            email = user.Email,
+            fullName = user.FullName,
+            role = user.Role.ToString()
+        });
     }
 
     [HttpPost("login")]
@@ -56,17 +68,53 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Pogresan email ili lozinka." });
         }
 
-        return Ok(BuildAuthResponse(user));
+        return Ok(await BuildAuthResponseAsync(user));
     }
 
-    private AuthResponse BuildAuthResponse(User user)
+    // Razmjena refresh tokena za novi par. Rotacija: stari se poništava.
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshRequest request)
+    {
+        var existing = await _refreshTokens.GetValidAsync(request.RefreshToken);
+        if (existing is null)
+        {
+            return Unauthorized(new { message = "Nevalidan ili istekao refresh token." });
+        }
+
+        var user = await _userManager.FindByIdAsync(existing.UserId);
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        await _refreshTokens.RevokeAsync(existing);
+        return Ok(await BuildAuthResponseAsync(user));
+    }
+
+    // Odjava poništava refresh token server-side (dovoljno je posjedovanje tokena).
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(RefreshRequest request)
+    {
+        var existing = await _refreshTokens.GetValidAsync(request.RefreshToken);
+        if (existing is not null)
+        {
+            await _refreshTokens.RevokeAsync(existing);
+        }
+
+        return Ok();
+    }
+
+    private async Task<AuthResponse> BuildAuthResponseAsync(User user)
     {
         var (token, expiresAt) = _tokenService.CreateToken(user);
+        var refresh = await _refreshTokens.CreateAsync(user.Id);
 
         return new AuthResponse
         {
-            Token = token,
+            AccessToken = token,
             ExpiresAt = expiresAt,
+            RefreshToken = refresh.Token,
+            RefreshExpiresAt = refresh.ExpiresAt,
             Id = user.Id,
             FullName = user.FullName,
             Email = user.Email ?? string.Empty,

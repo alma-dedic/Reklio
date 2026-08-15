@@ -35,4 +35,14 @@ public class PurchaseService : IPurchaseService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.DocumentNumber == documentNumber);
     }
+
+    public async Task<IReadOnlyList<Purchase>> FindAllByDocumentNumberAsync(string documentNumber)
+    {
+        return await _db.Purchases
+            .AsNoTracking()
+            .Include(p => p.Product)
+            .Where(p => p.DocumentNumber == documentNumber)
+            .OrderBy(p => p.Id)
+            .ToListAsync();
+    }
 }

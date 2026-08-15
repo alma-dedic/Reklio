@@ -66,14 +66,19 @@ def money(amount):
     return f"{amount:.2f}".replace(".", ",") + " KM"
 
 
-def render_receipt(doc_number, branch, purchase_date, amount, product_name):
+def render_receipt(doc_number, branch, purchase_date, items):
+    # items: lista (product_name, amount). UKUPNO = suma stavki (multi-stavka račun).
     width = 440
     title_font = load_font(30)
     head_font = load_font(18)
     body_font = load_font(17)
     small_font = load_font(14)
 
-    img = Image.new("RGB", (width, 360), (252, 252, 250))
+    items_start = 178
+    line_h = 28
+    height = items_start + len(items) * line_h + 100
+
+    img = Image.new("RGB", (width, height), (252, 252, 250))
     draw = ImageDraw.Draw(img)
     cx = width // 2
 
@@ -95,12 +100,18 @@ def render_receipt(doc_number, branch, purchase_date, amount, product_name):
     row("Racun br:", doc_number, 104, body_font)
     row("Datum:", purchase_date.strftime("%d.%m.%Y"), 132, body_font)
     sep(162)
-    draw.text((24, 178), product_name[:34], font=body_font, fill=(20, 20, 20))
-    row("", money(amount), 206, body_font)
-    sep(236)
-    row("UKUPNO:", money(amount), 252, head_font)
-    sep(286)
-    center("Hvala na kupovini!", 306, small_font, fill=(90, 90, 90))
+
+    y = items_start
+    total = 0.0
+    for name, amount in items:
+        row(name[:26], money(amount), y, body_font)
+        total += float(amount)
+        y += line_h
+
+    sep(y + 4)
+    row("UKUPNO:", money(total), y + 20, head_font)
+    sep(y + 52)
+    center("Hvala na kupovini!", y + 72, small_font, fill=(90, 90, 90))
     return img
 
 
@@ -145,7 +156,7 @@ def main():
         writer.writerow(["file", "purchase_id", "document_number", "branch",
                          "purchase_date", "amount", "product_name"])
         for pid, doc, branch, pdate, amount, name in rows:
-            image = degrade(render_receipt(doc, branch, pdate, float(amount), name))
+            image = degrade(render_receipt(doc, branch, pdate, [(name, float(amount))]))
             filename = f"{doc}.png"
             image.save(os.path.join(OUT_DIR, filename))
             writer.writerow([filename, pid, doc, branch,

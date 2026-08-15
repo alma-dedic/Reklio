@@ -23,23 +23,79 @@ public class ClaimsController : ControllerBase
     private readonly IClaimEvidenceService _evidence;
     private readonly IFileStorageService _storage;
     private readonly IClaimQueue _queue;
+    private readonly IOcrService _ocr;
 
     public ClaimsController(
         IClaimService claims,
         IPurchaseService purchases,
         IClaimEvidenceService evidence,
         IFileStorageService storage,
-        IClaimQueue queue)
+        IClaimQueue queue,
+        IOcrService ocr)
     {
         _claims = claims;
         _purchases = purchases;
         _evidence = evidence;
         _storage = storage;
         _queue = queue;
+        _ocr = ocr;
+    }
+
+    // Pročita broj računa (OCR sa slike) i vrati proizvode s tog računa za dropdown izbor.
+    [HttpPost("resolve-receipt")]
+    public async Task<IActionResult> ResolveReceipt(IFormFile receipt, CancellationToken ct)
+    {
+        if (receipt is null || receipt.Length == 0)
+        {
+            return BadRequest(new { message = "Slika računa je obavezna." });
+        }
+
+        var tempPath = Path.Combine(Path.GetTempPath(), $"reklio-ocr-{Guid.NewGuid():N}.img");
+        try
+        {
+            await using (var fs = System.IO.File.Create(tempPath))
+            {
+                await receipt.CopyToAsync(fs, ct);
+            }
+
+            var ocr = await _ocr.ExtractReceiptAsync(tempPath, ct);
+            return Ok(await BuildResolveAsync(ocr.DocumentNumber));
+        }
+        finally
+        {
+            if (System.IO.File.Exists(tempPath))
+            {
+                System.IO.File.Delete(tempPath);
+            }
+        }
+    }
+
+    // Online: proizvodi po ručno ukucanom broju računa.
+    [HttpGet("resolve-purchase")]
+    public async Task<IActionResult> ResolvePurchase([FromQuery] string documentNumber)
+    {
+        return Ok(await BuildResolveAsync(documentNumber));
+    }
+
+    private async Task<ResolveReceiptResponse> BuildResolveAsync(string? documentNumber)
+    {
+        var trimmed = documentNumber?.Trim();
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            return new ResolveReceiptResponse(null, false, []);
+        }
+
+        var lines = await _purchases.FindAllByDocumentNumberAsync(trimmed);
+        var products = lines
+            .Select(p => new ResolveProductItem(p.Id, p.Product.Name, p.Product.Category, p.Amount))
+            .ToList();
+
+        return new ResolveReceiptResponse(trimmed, products.Count > 0, products);
     }
 
     // T3.2 — vrati 202 odmah, obradu prepusti redu čekanja.
-    // Online: broj računa se razrješava sad. Fizička: slika ide u pipeline (OCR razriješi kupovinu).
+    // Proizvod je već izabran u wizardu (PurchaseId). Ako je null (kupovina nije pronađena),
+    // pipeline to tretira kao PURCHASE_NOT_FOUND i odbija.
     [HttpPost]
     public async Task<IActionResult> Submit([FromForm] CreateClaimRequest request)
     {
@@ -50,26 +106,19 @@ public class ClaimsController : ControllerBase
         }
 
         var isOnline = string.Equals(request.PurchaseType, "Online", StringComparison.OrdinalIgnoreCase);
-        int? purchaseId = null;
-
-        if (isOnline)
-        {
-            if (string.IsNullOrWhiteSpace(request.DocumentNumber))
-            {
-                return BadRequest(new { message = "Broj računa je obavezan za online kupovinu." });
-            }
-
-            var purchase = await _purchases.FindByDocumentNumberAsync(request.DocumentNumber.Trim());
-            if (purchase is null)
-            {
-                return BadRequest(new { message = "Kupovina s tim brojem računa nije pronađena." });
-            }
-
-            purchaseId = purchase.Id;
-        }
-        else if (request.Receipt is null)
+        if (!isOnline && request.Receipt is null)
         {
             return BadRequest(new { message = "Slika računa je obavezna za fizičku kupovinu." });
+        }
+
+        int? purchaseId = null;
+        if (request.PurchaseId is int selectedId)
+        {
+            if (await _purchases.GetByIdAsync(selectedId) is null)
+            {
+                return BadRequest(new { message = "Izabrani proizvod nije pronađen." });
+            }
+            purchaseId = selectedId;
         }
 
         var claim = new Claim
