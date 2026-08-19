@@ -1,4 +1,4 @@
-"""tools/ingest_policy.py — T7.3
+"""
 
 Ingest pravilnika u ChromaDB. Chunk po članu (Markdown ##) + dalje po veličini.
 

@@ -23,16 +23,13 @@
         </div>
       </section>
     } @else {
-      <section class="banner banner--done">
+      <section class="banner banner--done" [class.banner--rejected]="isRejected()">
         <div>
           <div class="banner__title">{{ statusLabel() }}</div>
+          @if (c.explanation) {
+            <div class="banner__sub">{{ c.explanation }}</div>
+          }
         </div>
-      </section>
-    }
-
-    @if (c.explanation) {
-      <section class="card">
-        <p style="margin: 0; line-height: 1.6;">{{ c.explanation }}</p>
       </section>
     }
 
@@ -67,19 +64,15 @@
       <!-- AI nalazi ne postoje dok pipeline ne bude implementiran (EPIC 5-9). -->
       <div class="analysis__row">
         <span>Dokaz kupovine</span>
-        <span class="analysis__pending">{{ c.analysis?.receiptCheck ?? 'Čeka se OCR ekstrakcija...' }}</span>
+        <span class="analysis__pending">{{ c.analysis?.receiptCheck ?? 'Provjera u toku...' }}</span>
       </div>
       <div class="analysis__row">
         <span>Fotografija oštećenja</span>
-        <span class="analysis__pending">{{ c.analysis?.damageCheck ?? 'Čeka se vizuelna analiza...' }}</span>
-      </div>
-      <div class="analysis__row">
-        <span>Provjera pravilnika</span>
-        <span class="analysis__pending">{{ c.analysis?.policyCheck ?? 'Čeka se RAG provjera...' }}</span>
+        <span class="analysis__pending">{{ c.analysis?.damageCheck ?? 'Provjera u toku...' }}</span>
       </div>
       <div class="analysis__row analysis__row--last">
-        <span>Procjena rizika</span>
-        <span class="analysis__pending">{{ c.analysis?.riskScore ?? 'Čeka se...' }}</span>
+        <span>Provjera pravilnika</span>
+        <span class="analysis__pending">{{ c.analysis?.policyCheck ?? 'Provjera u toku...' }}</span>
       </div>
     </section>
 

@@ -10,6 +10,13 @@
     @if (message()) {
       <p class="cd-message">{{ message() }}</p>
     }
+    @if (showReason()) {
+      <label class="cd-reason">
+        <span class="cd-reason__label">{{ reasonLabel() }}</span>
+        <textarea class="cd-reason__input" rows="3" placeholder="Unesite razlog..."
+                  [ngModel]="reason()" (ngModelChange)="reason.set($event)"></textarea>
+      </label>
+    }
     <div class="cd-actions">
       <button type="button" class="cd-btn cd-btn--ghost" (click)="cancelled.emit()">
         {{ cancelText() }}
@@ -19,7 +26,8 @@
         class="cd-btn"
         [class.cd-btn--danger]="danger()"
         [class.cd-btn--primary]="!danger()"
-        (click)="confirmed.emit()"
+        [disabled]="!canConfirm()"
+        (click)="onConfirm()"
       >
         {{ confirmText() }}
       </button>

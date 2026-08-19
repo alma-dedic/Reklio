@@ -14,6 +14,9 @@ public class DamageHttpResponse
     [JsonPropertyName("severity")]
     public string Severity { get; set; } = "None";
 
+    [JsonPropertyName("product_type")]
+    public string ProductType { get; set; } = "Nepoznato";
+
     [JsonPropertyName("confidence")]
     public double Confidence { get; set; }
 

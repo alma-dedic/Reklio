@@ -9,7 +9,7 @@
 .op {
   display: flex;
   gap: 20px;
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 24px;
   align-items: flex-start;
@@ -36,12 +36,6 @@
   border-bottom: 1px solid #eef0f3;
 }
 
-.op-list__sort {
-  font-size: 13px;
-  font-weight: 500;
-  color: #8a93a3;
-}
-
 .op-row {
   display: block;
   width: 100%;
@@ -59,7 +53,7 @@
 }
 
 .op-row--active {
-  background: #f0fbfa;
+  background: #f0f9ff;
   border-left-color: var(--teal);
 }
 
@@ -84,21 +78,8 @@
 .op-row__time {
   font-size: 12px;
   color: #9aa0ac;
-  margin-top: 2px;
 }
 
-/* ---- RIZIK BADGE ---- */
-.op-risk {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-}
-.op-risk--high { background: #fbe9e6; color: #9a2a1d; }
-.op-risk--mid  { background: #fbeecf; color: #835213; }
-.op-risk--low  { background: #e4f3ea; color: #155f3a; }
-.op-risk--none { background: #eef0f3; color: #6b7280; }
-.op-risk--pill { font-size: 12px; padding: 5px 12px; }
 
 /* ---- DETALJ ---- */
 .op-detail {
@@ -155,16 +136,10 @@
   color: #374151;
 }
 
-.op-analysis {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
 .op-images {
   display: flex;
   gap: 8px;
-  flex: none;
+  flex-wrap: wrap;
 }
 
 .op-thumb {
@@ -179,63 +154,74 @@
   border-style: dashed;
 }
 
-.op-findings {
-  font-size: 14px;
-  line-height: 1.7;
-  color: #374151;
-
-  b { color: var(--navy); }
-}
-
-.op-rag p {
-  margin: 0;
-  padding-left: 12px;
-  border-left: 3px solid var(--teal);
-  font-size: 14px;
-  line-height: 1.5;
-  color: #374151;
-}
-
-.op-risk-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.op-risk-val {
-  font-size: 14px;
-  font-weight: 700;
-  padding: 0;
-  background: none;
-
-  &.op-risk--high { color: #9a2a1d; }
-  &.op-risk--mid  { color: #835213; }
-  &.op-risk--low  { color: #155f3a; }
-  &.op-risk--none { color: #6b7280; }
-}
-
-.op-reason {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #5c667a;
-
-  &__label { font-weight: 600; }
-
-  ul { margin: 4px 0 0; padding-left: 18px; }
-  li { margin: 2px 0; }
-}
-
-.op-reco {
-  padding: 14px 16px;
-  background: #f0fbfa;
+/* AI analiza — kompaktna lista signala (fakti, jedan pogled) */
+.op-signals {
+  border: 1px solid #eef0f3;
   border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: #0f6e56;
-  margin-bottom: 20px;
+  overflow: hidden;
+}
 
-  b { color: #0b5643; }
+.op-signal {
+  display: flex;
+  gap: 14px;
+  padding: 11px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+
+  & + & { border-top: 1px solid #eef0f3; }
+}
+
+.op-signal__k {
+  flex: 0 0 140px;
+  color: #8a93a3;
+}
+
+.op-signal__v {
+  flex: 1;
+  color: #374151;
+}
+
+/* Zašto je na pregledu — jedini istaknuti "na šta obratiti pažnju" */
+.op-why {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9a3412;
+    margin-bottom: 6px;
+  }
+
+  ul { margin: 0; padding-left: 18px; }
+  li { margin: 3px 0; font-size: 14px; color: #7c3f16; line-height: 1.5; }
+}
+
+/* AI preporuka (savjetodavna) — jedna akcijska linija operateru */
+.op-reco {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f0f9ff;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 10px;
+
+  &__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #0369a1;
+    margin-bottom: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #0c4a6e;
+  }
 }
 
 .op-actions {
@@ -270,6 +256,12 @@
   color: #ffffff;
 
   &:hover:not(:disabled) { background: #367a38; }
+}
+
+/* Dugme koje AI preporučuje — suptilan sky prsten */
+.op-btn--rec {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
 .op-empty {

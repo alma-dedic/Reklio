@@ -9,4 +9,6 @@ import { Component, input } from '@angular/core';
 export class AuthLayout {
   readonly heading = input.required<string>();
   readonly subheading = input.required<string>();
+  // Login: forma poravnata na vrhu (u visini naslova). Registracija: centrirana.
+  readonly alignTop = input(false);
 }

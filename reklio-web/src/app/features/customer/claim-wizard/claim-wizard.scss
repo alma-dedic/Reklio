@@ -52,7 +52,7 @@
 .stepper__dot--done {
   background: var(--teal);
   border-color: var(--teal);
-  color: #04342c;
+  color: #0c4a6e;
 }
 
 .stepper__label {
@@ -117,7 +117,7 @@
 
 .choice--active {
   border-color: var(--teal);
-  background: #f0fbfa;
+  background: #f0f9ff;
 }
 
 .choice__title {
@@ -167,7 +167,7 @@
 
 .drop__file {
   font-size: 11px;
-  color: #0f6e56;
+  color: #0369a1;
   margin-top: 8px;
 }
 
@@ -298,10 +298,10 @@
   align-items: flex-start;
   margin-top: 14px;
   padding: 10px;
-  background: #f0fbfa;
+  background: #f0f9ff;
   border-radius: 8px;
   font-size: 11px;
-  color: #0f6e56;
+  color: #0369a1;
   line-height: 1.5;
 
   svg {

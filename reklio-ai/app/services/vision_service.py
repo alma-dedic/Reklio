@@ -4,7 +4,7 @@ import json
 from openai import OpenAI
 
 from ..config import OPENAI_API_KEY, OPENAI_MODEL
-from ..schemas.damage import DAMAGE_TYPES, SEVERITIES, DamageResponse
+from ..schemas.damage import DAMAGE_TYPES, PRODUCT_TYPES, SEVERITIES, DamageResponse
 
 # Structured output sa enum ograničenjima — model NE može vratiti vrijednost
 # van fiksne liste (bitno za decision gate koji grana po tim vrijednostima).
@@ -14,10 +14,14 @@ _SCHEMA = {
         "damage_confirmed": {"type": "boolean"},
         "damage_type": {"type": "string", "enum": DAMAGE_TYPES},
         "severity": {"type": "string", "enum": SEVERITIES},
+        "product_type": {"type": "string", "enum": PRODUCT_TYPES},
         "confidence": {"type": "number"},
         "description": {"type": "string"},
     },
-    "required": ["damage_confirmed", "damage_type", "severity", "confidence", "description"],
+    "required": [
+        "damage_confirmed", "damage_type", "severity", "product_type",
+        "confidence", "description",
+    ],
     "additionalProperties": False,
 }
 
@@ -30,6 +34,8 @@ _PROMPT = (
     "Moderate = jasno vidljivo, proizvod djelimično upotrebljiv; "
     "Severe = teško, proizvod neupotrebljiv ili velika deformacija/lom; "
     "None = nema oštećenja. "
+    "product_type = koji je proizvod na slici, odaberi iz dozvoljene liste; "
+    "'Nepoznato' ako se ne vidi jasno ili nisi siguran. "
     "confidence je tvoja pouzdanost 0.0-1.0. description je kratak opis na bosanskom."
 )
 

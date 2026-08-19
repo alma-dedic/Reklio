@@ -1,14 +1,13 @@
 using Reklio.Api.DTOs.Ai;
 using Reklio.Api.DTOs.Validation;
-using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
 
 namespace Reklio.Api.Services;
 
-// T6.4 / T6.5 — validacija dokaza kupovine protiv Purchase tabele.
+// T6.4 / T6.5 — validacija računa protiv Purchase tabele (na unosu/resolve).
 public class ReceiptValidationService : IReceiptValidationService
 {
-    // Fuzzy tolerancije: apsorbuju OCR šum, ali velika razlika = fraud signal.
+    // Fuzzy tolerancije: apsorbuju OCR šum, ali velika razlika = neispravan račun.
     private const decimal AmountToleranceKm = 1.00m;
     private const int DateToleranceDays = 1;
 
@@ -19,27 +18,22 @@ public class ReceiptValidationService : IReceiptValidationService
         _purchases = purchases;
     }
 
-    public async Task<ReceiptValidationResult> ValidateOnlineAsync(string documentNumber)
+    public async Task<ReceiptValidationResult> ValidateDocumentAsync(OcrResult ocr)
     {
-        var purchase = await _purchases.FindByDocumentNumberAsync(documentNumber.Trim());
-        return purchase is null
-            ? ReceiptValidationResult.NotFound()
-            : ReceiptValidationResult.Valid(purchase.Id);
-    }
-
-    public async Task<ReceiptValidationResult> ValidateReceiptAsync(OcrResult ocr, Purchase selectedPurchase)
-    {
-        // Broj sa slike mora odgovarati izabranoj kupovini (hvata zamjenu slike računa).
-        if (string.IsNullOrWhiteSpace(ocr.DocumentNumber) ||
-            !string.Equals(ocr.DocumentNumber.Trim(), selectedPurchase.DocumentNumber,
-                StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(ocr.DocumentNumber))
         {
-            return ReceiptValidationResult.Mismatch(selectedPurchase.Id, ["document_number"]);
+            return ReceiptValidationResult.NotFound();
         }
 
-        // Iznos sa slike je TOTAL računa → poredi sa sumom svih stavki tog dokumenta.
-        var lines = await _purchases.FindAllByDocumentNumberAsync(selectedPurchase.DocumentNumber);
+        var lines = await _purchases.FindAllByDocumentNumberAsync(ocr.DocumentNumber.Trim());
+        if (lines.Count == 0)
+        {
+            return ReceiptValidationResult.NotFound();
+        }
+
+        // Iznos sa slike je TOTAL računa → poredi sa sumom svih stavki dokumenta.
         var total = lines.Sum(l => l.Amount);
+        var purchaseDate = lines[0].PurchaseDate;
 
         var issues = new List<string>();
         if (ocr.Amount is null || Math.Abs(ocr.Amount.Value - total) > AmountToleranceKm)
@@ -47,13 +41,13 @@ public class ReceiptValidationService : IReceiptValidationService
             issues.Add("amount");
         }
         if (ocr.PurchaseDate is null ||
-            Math.Abs((ocr.PurchaseDate.Value.Date - selectedPurchase.PurchaseDate.Date).TotalDays) > DateToleranceDays)
+            Math.Abs((ocr.PurchaseDate.Value.Date - purchaseDate.Date).TotalDays) > DateToleranceDays)
         {
             issues.Add("date");
         }
 
         return issues.Count == 0
-            ? ReceiptValidationResult.Valid(selectedPurchase.Id)
-            : ReceiptValidationResult.Mismatch(selectedPurchase.Id, issues);
+            ? ReceiptValidationResult.Valid(lines[0].Id)
+            : ReceiptValidationResult.Mismatch(lines[0].Id, issues);
     }
 }

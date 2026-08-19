@@ -63,7 +63,7 @@
         @if (resolving()) {
           <div class="resolve-note">Provjeravam račun...</div>
         } @else if (resolveResult(); as result) {
-          @if (result.found) {
+          @if (result.status === 'ok') {
             <label class="field resolve-field">
               <span class="field__label">Za koji proizvod prijavljujete reklamaciju?</span>
               <select class="field__input" (change)="onProductSelected($event)">
@@ -75,6 +75,10 @@
                 }
               </select>
             </label>
+          } @else if (result.status === 'mismatch') {
+            <div class="resolve-note resolve-note--warn">
+              Podaci na računu se ne poklapaju s evidencijom (iznos ili datum). Provjerite da ste priložili ispravnu i jasnu sliku računa.
+            </div>
           } @else {
             <div class="resolve-note resolve-note--warn">
               Kupovina s ovim računom nije pronađena. Provjerite broj računa ili pokušajte s jasnijom slikom — reklamacija se ne može podnijeti bez pronađene kupovine.
@@ -123,9 +127,8 @@
         <label class="field">
           <span class="field__label">Vrsta problema</span>
           <select class="field__input" [formControl]="form.controls.issueType">
-            <option>Oštećenje pri dostavi</option>
-            <option>Proizvod ne radi</option>
-            <option>Pogrešan proizvod</option>
+            <option>Fizičko oštećenje</option>
+            <option>Proizvod ne radi / kvar</option>
             <option>Ostalo</option>
           </select>
         </label>

@@ -22,11 +22,11 @@ export class OperatorService {
     return this.http.get(`${this.baseUrl}/evidence/${evidenceId}`, { responseType: 'blob' });
   }
 
-  approve(id: number): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/claims/${id}/approve`, {});
+  approve(id: number, reason?: string): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/claims/${id}/approve`, { reason: reason ?? null });
   }
 
-  reject(id: number): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/claims/${id}/reject`, {});
+  reject(id: number, reason: string): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/claims/${id}/reject`, { reason });
   }
 }

@@ -1,6 +1,8 @@
 namespace Reklio.Api.DTOs.Ai;
 
-// Dva teksta LLM objašnjenja (T9.3): jedan za korisnika, jedan za operatera.
+// AI preporuka za eskaliranu reklamaciju (savjetodavna, operater odlučuje):
+// lean smjera + obrazloženje za operatera + draft razloga za kupca.
 public record ExplanationResult(
-    string UserText,
-    string OperatorText);
+    string Recommendation,
+    string OperatorText,
+    string CustomerReason);

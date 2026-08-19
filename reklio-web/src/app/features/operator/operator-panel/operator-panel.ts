@@ -1,4 +1,5 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { OperatorService } from '../../../core/operator/operator.service';
 import {
   OperatorClaimDetail,
@@ -7,11 +8,10 @@ import {
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
 const RISK_HIGH = 0.8684;
-const RISK_MID = 0.5;
 
 @Component({
   selector: 'app-operator-panel',
-  imports: [ConfirmDialog],
+  imports: [ConfirmDialog, DatePipe],
   templateUrl: './operator-panel.html',
   styleUrl: './operator-panel.scss',
 })
@@ -26,6 +26,7 @@ export class OperatorPanel implements OnDestroy {
   protected readonly evidenceUrls = signal<Record<number, string>>({});
   protected readonly processing = signal(false);
   protected readonly confirmAction = signal<'approve' | 'reject' | null>(null);
+  protected readonly reasonPrefill = signal('');
 
   constructor() {
     this.loadQueue();
@@ -76,23 +77,13 @@ export class OperatorPanel implements OnDestroy {
     return this.evidenceUrls()[id];
   }
 
-  protected riskLabel(score: number | null): string {
-    if (score === null) return '—';
-    if (score >= RISK_HIGH) return 'Visok';
-    if (score >= RISK_MID) return 'Srednji';
-    return 'Nizak';
-  }
-
-  protected riskClass(score: number | null | undefined): string {
-    if (score === null || score === undefined) return 'op-risk--none';
-    if (score >= RISK_HIGH) return 'op-risk--high';
-    if (score >= RISK_MID) return 'op-risk--mid';
-    return 'op-risk--low';
-  }
-
   protected formatRisk(score: number | null): string {
     if (score === null) return '—';
-    return `${score.toFixed(2)} ${score < RISK_HIGH ? '(ispod praga)' : '(iznad praga)'}`;
+    return `${score.toFixed(2)} ${score < RISK_HIGH ? 'ispod praga' : 'iznad praga'}`;
+  }
+
+  protected riskFactorsText(factors: string[] | null | undefined): string {
+    return factors && factors.length ? ` (${factors.join(', ')})` : '';
   }
 
   protected timeAgo(iso: string): string {
@@ -105,25 +96,34 @@ export class OperatorPanel implements OnDestroy {
   }
 
   protected askApprove(): void {
+    this.reasonPrefill.set(this.prefillFor('approve'));
     this.confirmAction.set('approve');
   }
 
   protected askReject(): void {
+    this.reasonPrefill.set(this.prefillFor('reject'));
     this.confirmAction.set('reject');
+  }
+
+  // AI draft razloga pre-popuni SAMO kad operaterov smjer odgovara preporuci;
+  // ako ide u drugi smjer (override), polje je prazno pa upiše svoj razlog.
+  private prefillFor(action: 'approve' | 'reject'): string {
+    const d = this.detail();
+    return d && d.recommendation === action ? (d.customerReason ?? '') : '';
   }
 
   protected confirmDialogTitle(): string {
     return this.confirmAction() === 'approve' ? 'Odobriti reklamaciju?' : 'Odbiti reklamaciju?';
   }
 
-  protected onConfirm(): void {
+  protected onConfirm(reason: string): void {
     const id = this.selectedId();
     const action = this.confirmAction();
     if (id === null || action === null) {
       return;
     }
     this.processing.set(true);
-    const req = action === 'approve' ? this.operator.approve(id) : this.operator.reject(id);
+    const req = action === 'approve' ? this.operator.approve(id, reason) : this.operator.reject(id, reason);
     req.subscribe({
       next: () => {
         this.processing.set(false);

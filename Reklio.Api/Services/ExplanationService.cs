@@ -51,6 +51,6 @@ public class ExplanationService : IExplanationService
         var dto = await response.Content.ReadFromJsonAsync<ExplanationHttpResponse>(cancellationToken)
             ?? throw new InvalidOperationException("Prazan odgovor explanation servisa.");
 
-        return new ExplanationResult(dto.UserText, dto.OperatorText);
+        return new ExplanationResult(dto.Recommendation, dto.OperatorText, dto.CustomerReason);
     }
 }

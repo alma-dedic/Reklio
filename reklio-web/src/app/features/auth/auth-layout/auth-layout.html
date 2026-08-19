@@ -2,7 +2,7 @@
   <aside class="brand">
     <div>
       <div class="brand__logo">
-        <span class="brand__mark">R</span>
+        <img class="brand__mark" src="/logo.png" alt="Reklio" />
         <span class="brand__name">Reklio</span>
       </div>
       <h1 class="brand__heading">{{ heading() }}</h1>
@@ -51,7 +51,7 @@
     </div>
   </aside>
 
-  <section class="form-panel">
+  <section class="form-panel" [class.form-panel--top]="alignTop()">
     <div class="form-inner">
       <ng-content></ng-content>
     </div>

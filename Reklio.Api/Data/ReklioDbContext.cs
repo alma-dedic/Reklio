@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Reklio.Api.Models;
 
 namespace Reklio.Api.Data;
@@ -9,6 +10,26 @@ public class ReklioDbContext : IdentityUserContext<User>
     public ReklioDbContext(DbContextOptions<ReklioDbContext> options)
         : base(options)
     {
+    }
+
+    // SQL Server ne pamti DateTimeKind → čitaj sve DateTime kao UTC, da se serijalizuju
+    // sa 'Z' i frontend ih tumači kao UTC (inače "prije 2 sata" umjesto "prije par minuta").
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+    }
+
+    private sealed class UtcDateTimeConverter : ValueConverter<DateTime, DateTime>
+    {
+        public UtcDateTimeConverter()
+            : base(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc)) { }
+    }
+
+    private sealed class NullableUtcDateTimeConverter : ValueConverter<DateTime?, DateTime?>
+    {
+        public NullableUtcDateTimeConverter()
+            : base(v => v, v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v) { }
     }
 
     public DbSet<Product> Products => Set<Product>();

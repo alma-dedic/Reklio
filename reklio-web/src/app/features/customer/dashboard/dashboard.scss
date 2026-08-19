@@ -18,8 +18,8 @@
 }
 
 .cta {
-  background: #f0fbfa;
-  border: 0.5px solid #b8e8e0;
+  background: rgba(56, 189, 248, 0.10);
+  border: 0.5px solid rgba(56, 189, 248, 0.32);
   border-radius: 14px;
   padding: 22px 24px;
   display: flex;
@@ -39,7 +39,7 @@
 .cta__icon {
   width: 30px;
   height: 30px;
-  color: #0f6e56;
+  color: #0369a1;
   flex: 0 0 auto;
 }
 
@@ -52,7 +52,7 @@
 
 .cta__sub {
   font-size: 13px;
-  color: #3d6b62;
+  color: #5c6b7d;
   margin-top: 4px;
 }
 

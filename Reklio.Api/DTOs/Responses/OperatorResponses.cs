@@ -26,5 +26,7 @@ public record OperatorClaimDetail(
     string IssueDescription,
     ClaimAnalysisResponse? Analysis,
     string? OperatorExplanation,
+    string? Recommendation,
+    string? CustomerReason,
     IReadOnlyList<string> Factors,
     IReadOnlyList<OperatorEvidenceItem> Evidence);

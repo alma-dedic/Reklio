@@ -22,4 +22,16 @@ public static class CatalogSeed
         new() { Id = 9, Name = "Powerbank 10000mAh", Category = "Potrošni dijelovi", Price = 79m, WarrantyMonths = 6 },
         new() { Id = 10, Name = "Baterija za laptop (zamjenska)", Category = "Potrošni dijelovi", Price = 99m, WarrantyMonths = 6 },
     ];
+
+    // Tip proizvoda (1:1 sa katalogom) — usklađen sa PRODUCT_TYPES u viziji. Služi za
+    // provjeru da fotografija odgovara izabranom proizvodu (Faza 2). Bez kolone/migracije.
+    private static readonly IReadOnlyDictionary<int, string> TypeById = new Dictionary<int, string>
+    {
+        [1] = "Telefon", [2] = "Laptop", [3] = "Tablet", [4] = "Kamera",
+        [5] = "Slušalice", [6] = "Zvučnik", [7] = "Kabl", [8] = "Punjač",
+        [9] = "Powerbank", [10] = "Baterija",
+    };
+
+    public static string TypeFor(Product product) =>
+        TypeById.GetValueOrDefault(product.Id, "Nepoznato");
 }

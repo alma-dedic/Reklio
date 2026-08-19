@@ -1,5 +1,4 @@
 using Reklio.Api.DTOs.Ai;
-using Reklio.Api.DTOs.Validation;
 using Reklio.Api.Services.Interfaces;
 
 namespace Reklio.Api.Services;
@@ -15,21 +14,13 @@ public class DecisionGate : IDecisionGate
 
     public DecisionResult Evaluate(ClaimAnalysisResult signals)
     {
-        var validation = signals.Validation;
         var vision = signals.Vision;
         var policy = signals.Policy;
         var risk = signals.Fraud?.RiskScore ?? 0.0;
 
-        // ── 1. TVRDE ČINJENICE → AUTO-ODBIJ (samo čiste kodne/SQL provjere) ──
-        // 1a. Račun ne odgovara nijednoj kupovini (FindByDocumentNumber = null).
-        if (validation is { Status: ReceiptValidationStatus.NotFound })
-        {
-            return DecisionResult.Rejected(
-                "PURCHASE_NOT_FOUND",
-                "Broj računa ne odgovara nijednoj evidentiranoj kupovini.");
-        }
-
-        // 1b. Garancija istekla — datumski proračun, bez RAG-a.
+        // ── 1. TVRDA ČINJENICA → AUTO-ODBIJ (čist datumski proračun, bez AI-a) ──
+        // Kupovina je razriješena i validirana pri unosu (Submit/resolve to nameću),
+        // pa je ovdje uvijek prisutna — jedino tvrdo odbijanje je istekla garancija.
         if (signals.WarrantyExpired)
         {
             return DecisionResult.Rejected(
@@ -38,11 +29,10 @@ public class DecisionGate : IDecisionGate
         }
 
         // ── 2. ČIST SLUČAJ + NIZAK RIZIK → AUTO-ODOBRI (svi uslovi moraju vrijediti) ──
-        // WarrantyExpired je ovdje već false — grana 1b bi ranije presjekla.
-        if (validation is { Status: ReceiptValidationStatus.Valid }
-            && risk < RiskThreshold
+        if (risk < RiskThreshold
             && vision is { DamageConfirmed: true }
-            && policy is { Covered: true })
+            && policy is { Covered: true }
+            && !signals.ProductMismatch)
         {
             return DecisionResult.Approved();
         }
@@ -55,18 +45,14 @@ public class DecisionGate : IDecisionGate
             factors.Add($"Visok rizik (score {risk:0.0000} ≥ prag {RiskThreshold:0.0000}).");
         }
 
-        if (validation is null)
-        {
-            factors.Add("Nema priloženog dokaza za validaciju kupovine.");
-        }
-        else if (validation.Status == ReceiptValidationStatus.Mismatch)
-        {
-            factors.Add("Račun se ne poklapa sa kupovinom (iznos ili datum van tolerancije).");
-        }
-
         if (vision is null || !vision.DamageConfirmed)
         {
             factors.Add("Oštećenje nije potvrđeno na fotografiji.");
+        }
+
+        if (signals.ProductMismatch)
+        {
+            factors.Add("Slika ne odgovara izabranom proizvodu (tip sa slike ≠ kupljeni proizvod).");
         }
 
         if (policy is { ApplicableExclusion: not null })

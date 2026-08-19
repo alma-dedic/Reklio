@@ -64,8 +64,7 @@ public class ClaimService : IClaimService
             .Include(c => c.User)
             .Include(c => c.Purchase!).ThenInclude(p => p.Product)
             .Where(c => c.Status == ClaimStatus.Escalated)
-            .OrderByDescending(c => c.RiskScore)   // najviši rizik prvo; NULL rizik ide na kraj
-            .ThenByDescending(c => c.SubmittedAt)
+            .OrderByDescending(c => c.SubmittedAt)   // najnovije prvo
             .ToListAsync();
     }
 

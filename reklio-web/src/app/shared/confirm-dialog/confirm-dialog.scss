@@ -76,6 +76,40 @@
   }
 }
 
+.cd-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cd-reason {
+  display: block;
+  margin: 0 0 20px;
+}
+
+.cd-reason__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.cd-reason__input {
+  width: 100%;
+  border: 1px solid #d8dce3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1b2233;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #2b4a8b;
+  }
+}
+
 @keyframes cd-fade {
   from { opacity: 0; }
   to { opacity: 1; }

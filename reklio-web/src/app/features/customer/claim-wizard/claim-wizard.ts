@@ -42,7 +42,7 @@ export class ClaimWizard {
 
   protected readonly form = this.fb.nonNullable.group({
     documentNumber: [''],
-    issueType: ['Oštećenje pri dostavi', [Validators.required]],
+    issueType: ['Fizičko oštećenje', [Validators.required]],
     issueDescription: ['', [Validators.required, Validators.minLength(10)]],
   });
 
@@ -131,7 +131,7 @@ export class ClaimWizard {
         this.resolveResult.set(result);
         this.resolving.set(false);
         // Jedan proizvod → automatski izabran.
-        if (result.found && result.products.length === 1) {
+        if (result.status === 'ok' && result.products.length === 1) {
           this.selectedPurchaseId.set(result.products[0].purchaseId);
         }
       },

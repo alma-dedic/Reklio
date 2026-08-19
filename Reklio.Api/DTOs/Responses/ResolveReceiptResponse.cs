@@ -3,8 +3,8 @@ namespace Reklio.Api.DTOs.Responses;
 // Jedna stavka računa ponuđena korisniku u dropdownu.
 public record ResolveProductItem(int PurchaseId, string ProductName, string Category, decimal Price);
 
-// Odgovor na resolve: proizvodi vezani za broj računa (iz slike ili ukucanog broja).
+// Odgovor na resolve. Status: "ok" (nađeno + validirano) | "mismatch" (iznos/datum) | "not_found".
 public record ResolveReceiptResponse(
     string? DocumentNumber,
-    bool Found,
+    string Status,
     IReadOnlyList<ResolveProductItem> Products);

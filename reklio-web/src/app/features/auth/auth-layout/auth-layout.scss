@@ -7,20 +7,16 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  background: #fff;
+  background: var(--navy);
 }
 
 .brand {
   flex: 1 1 55%;
   min-width: 0;
-  background: var(--navy);
   padding: 4rem 3.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: relative;
-  z-index: 1;
-  box-shadow: 8px 0 24px rgba(16, 27, 45, 0.18);
 }
 
 .brand__logo {
@@ -33,14 +29,8 @@
 .brand__mark {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: var(--teal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: #062824;
+  display: block;
+  object-fit: contain;
 }
 
 .brand__name {
@@ -103,7 +93,7 @@
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(0, 194, 178, 0.18),
+    rgba(56, 189, 248, 0.18),
     transparent
   );
   pointer-events: none;
@@ -137,7 +127,7 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: rgba(0, 194, 178, 0.14);
+  background: rgba(56, 189, 248, 0.14);
   color: var(--teal);
   display: flex;
   align-items: center;
@@ -169,16 +159,25 @@
 .form-panel {
   flex: 1 1 45%;
   min-width: 0;
-  background: #fff;
   padding: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* Login: poravnaj formu na vrhu (u visini velikog naslova). */
+.form-panel--top {
+  align-items: flex-start;
+  padding-top: 10.5rem;
+}
+
 .form-inner {
   width: 100%;
-  max-width: 460px;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 40px 36px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 640px) {

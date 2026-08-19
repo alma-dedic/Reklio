@@ -6,6 +6,7 @@ using Reklio.Api.BackgroundJobs;
 using Reklio.Api.DTOs.Ai;
 using Reklio.Api.DTOs.Requests;
 using Reklio.Api.DTOs.Responses;
+using Reklio.Api.DTOs.Validation;
 using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
 
@@ -24,6 +25,7 @@ public class ClaimsController : ControllerBase
     private readonly IFileStorageService _storage;
     private readonly IClaimQueue _queue;
     private readonly IOcrService _ocr;
+    private readonly IReceiptValidationService _validation;
 
     public ClaimsController(
         IClaimService claims,
@@ -31,7 +33,8 @@ public class ClaimsController : ControllerBase
         IClaimEvidenceService evidence,
         IFileStorageService storage,
         IClaimQueue queue,
-        IOcrService ocr)
+        IOcrService ocr,
+        IReceiptValidationService validation)
     {
         _claims = claims;
         _purchases = purchases;
@@ -39,9 +42,11 @@ public class ClaimsController : ControllerBase
         _storage = storage;
         _queue = queue;
         _ocr = ocr;
+        _validation = validation;
     }
 
-    // Pročita broj računa (OCR sa slike) i vrati proizvode s tog računa za dropdown izbor.
+    // In-store: JEDINI OCR poziv. Pročita račun i odmah validira (broj + iznos + datum).
+    // Pipeline poslije NE radi OCR ponovo — vjeruje ovoj validaciji.
     [HttpPost("resolve-receipt")]
     public async Task<IActionResult> ResolveReceipt(IFormFile receipt, CancellationToken ct)
     {
@@ -59,7 +64,13 @@ public class ClaimsController : ControllerBase
             }
 
             var ocr = await _ocr.ExtractReceiptAsync(tempPath, ct);
-            return Ok(await BuildResolveAsync(ocr.DocumentNumber));
+            var validation = await _validation.ValidateDocumentAsync(ocr);
+
+            var products = validation.Status == ReceiptValidationStatus.Valid
+                ? await ProductsForAsync(ocr.DocumentNumber)
+                : [];
+
+            return Ok(new ResolveReceiptResponse(ocr.DocumentNumber, StatusText(validation.Status), products));
         }
         finally
         {
@@ -70,28 +81,35 @@ public class ClaimsController : ControllerBase
         }
     }
 
-    // Online: proizvodi po ručno ukucanom broju računa.
+    // Online: lookup po ručno ukucanom broju (nema slike → nema OCR-a ni iznos/datum provjere).
     [HttpGet("resolve-purchase")]
     public async Task<IActionResult> ResolvePurchase([FromQuery] string documentNumber)
     {
-        return Ok(await BuildResolveAsync(documentNumber));
+        var products = await ProductsForAsync(documentNumber);
+        var status = products.Count > 0 ? "ok" : "not_found";
+        return Ok(new ResolveReceiptResponse(documentNumber?.Trim(), status, products));
     }
 
-    private async Task<ResolveReceiptResponse> BuildResolveAsync(string? documentNumber)
+    private async Task<List<ResolveProductItem>> ProductsForAsync(string? documentNumber)
     {
         var trimmed = documentNumber?.Trim();
         if (string.IsNullOrWhiteSpace(trimmed))
         {
-            return new ResolveReceiptResponse(null, false, []);
+            return [];
         }
 
         var lines = await _purchases.FindAllByDocumentNumberAsync(trimmed);
-        var products = lines
+        return lines
             .Select(p => new ResolveProductItem(p.Id, p.Product.Name, p.Product.Category, p.Amount))
             .ToList();
-
-        return new ResolveReceiptResponse(trimmed, products.Count > 0, products);
     }
+
+    private static string StatusText(ReceiptValidationStatus status) => status switch
+    {
+        ReceiptValidationStatus.Valid => "ok",
+        ReceiptValidationStatus.Mismatch => "mismatch",
+        _ => "not_found",
+    };
 
     // T3.2 — vrati 202 odmah, obradu prepusti redu čekanja.
     // Proizvod je već izabran u wizardu (PurchaseId). Ako je null (kupovina nije pronađena),
@@ -111,20 +129,17 @@ public class ClaimsController : ControllerBase
             return BadRequest(new { message = "Slika računa je obavezna za fizičku kupovinu." });
         }
 
-        int? purchaseId = null;
-        if (request.PurchaseId is int selectedId)
+        // Proizvod (razriješena kupovina) je obavezan — reklamacija bez nje se ne prima.
+        if (request.PurchaseId is not int selectedId
+            || await _purchases.GetByIdAsync(selectedId) is null)
         {
-            if (await _purchases.GetByIdAsync(selectedId) is null)
-            {
-                return BadRequest(new { message = "Izabrani proizvod nije pronađen." });
-            }
-            purchaseId = selectedId;
+            return BadRequest(new { message = "Izaberite proizvod — kupovina nije razriješena." });
         }
 
         var claim = new Claim
         {
             UserId = userId,
-            PurchaseId = purchaseId,
+            PurchaseId = selectedId,
             IssueType = request.IssueType,
             IssueDescription = request.IssueDescription,
             Status = ClaimStatus.Submitted,
@@ -200,8 +215,9 @@ public class ClaimsController : ControllerBase
             var snapshot = JsonSerializer.Deserialize<ClaimAnalysisSnapshot>(claim.AnalysisJson);
             if (snapshot is not null)
             {
+                // Rizik prevare je interni (za operatera) — kupcu se NE šalje.
                 analysis = new ClaimAnalysisResponse(
-                    snapshot.ReceiptCheck, snapshot.DamageCheck, snapshot.PolicyCheck, snapshot.RiskScore);
+                    snapshot.ReceiptCheck, snapshot.DamageCheck, snapshot.PolicyCheck, null);
                 explanation = snapshot.CustomerExplanation;
             }
         }

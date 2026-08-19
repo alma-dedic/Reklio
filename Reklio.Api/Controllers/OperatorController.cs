@@ -2,8 +2,10 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Reklio.Api.DTOs.Ai;
+using Reklio.Api.DTOs.Requests;
 using Reklio.Api.DTOs.Responses;
 using Reklio.Api.Models;
+using Reklio.Api.Services;
 using Reklio.Api.Services.Interfaces;
 using ClaimTypes = System.Security.Claims.ClaimTypes;
 
@@ -56,6 +58,8 @@ public class OperatorController : ControllerBase
 
         ClaimAnalysisResponse? analysis = null;
         string? operatorExplanation = null;
+        string? recommendation = null;
+        string? customerReason = null;
         IReadOnlyList<string> factors = [];
         if (!string.IsNullOrWhiteSpace(claim.AnalysisJson))
         {
@@ -63,8 +67,12 @@ public class OperatorController : ControllerBase
             if (snapshot is not null)
             {
                 analysis = new ClaimAnalysisResponse(
-                    snapshot.ReceiptCheck, snapshot.DamageCheck, snapshot.PolicyCheck, snapshot.RiskScore);
+                    snapshot.ReceiptCheck, snapshot.DamageCheck,
+                    snapshot.PolicyDetail ?? snapshot.PolicyCheck, snapshot.RiskScore,
+                    snapshot.RiskFactors);
                 operatorExplanation = snapshot.OperatorExplanation;
+                recommendation = snapshot.Recommendation;
+                customerReason = snapshot.CustomerReasonDraft;
                 factors = snapshot.Factors ?? [];
             }
         }
@@ -84,6 +92,8 @@ public class OperatorController : ControllerBase
             claim.IssueDescription,
             analysis,
             operatorExplanation,
+            recommendation,
+            customerReason,
             factors,
             evidenceItems));
     }
@@ -105,19 +115,25 @@ public class OperatorController : ControllerBase
     }
 
     [HttpPost("claims/{id:int}/approve")]
-    public Task<IActionResult> Approve(int id) =>
-        ResolveAsync(id, ClaimStatus.OperatorApproved, "odobrena");
+    public Task<IActionResult> Approve(int id, [FromBody] OperatorDecisionRequest? request) =>
+        ResolveAsync(id, ClaimStatus.OperatorApproved, request?.Reason);
 
     [HttpPost("claims/{id:int}/reject")]
-    public Task<IActionResult> Reject(int id) =>
-        ResolveAsync(id, ClaimStatus.OperatorRejected, "odbijena");
+    public Task<IActionResult> Reject(int id, [FromBody] OperatorDecisionRequest? request) =>
+        ResolveAsync(id, ClaimStatus.OperatorRejected, request?.Reason);
 
-    private async Task<IActionResult> ResolveAsync(int id, ClaimStatus status, string verb)
+    private async Task<IActionResult> ResolveAsync(int id, ClaimStatus status, string? reason)
     {
         var operatorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
         if (operatorId is null)
         {
             return Unauthorized();
+        }
+
+        // Kod odbijanja razlog je obavezan — prikazuje se kupcu.
+        if (status == ClaimStatus.OperatorRejected && string.IsNullOrWhiteSpace(reason))
+        {
+            return BadRequest(new { message = "Razlog odbijanja je obavezan." });
         }
 
         var claim = await _claims.GetByIdAsync(id);
@@ -130,18 +146,20 @@ public class OperatorController : ControllerBase
             return BadRequest(new { message = "Reklamacija nije u statusu za operatersku odluku." });
         }
 
+        var reference = Reference(claim);
+        var cleanReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+
         await _claims.ResolveByOperatorAsync(id, operatorId, status);
         await _notifications.CreateAsync(new Notification
         {
             UserId = claim.UserId,
             ClaimId = id,
-            Message = $"Vaša reklamacija {Reference(claim)} je {verb} nakon pregleda operatera.",
+            Message = ClaimOutcomeMessages.Notification(status, cleanReason, reference),
             IsRead = false,
         });
 
-        // Osvježi korisničko objašnjenje da odgovara ishodu (inače ekran detalja
-        // pokazuje stari tekst iz eskalacije uz "Odobreno/Odbijeno" banner).
-        await _claims.UpdateCustomerExplanationAsync(id, $"Vaša reklamacija je {verb} nakon pregleda operatera.");
+        // Osvježi korisničko objašnjenje da odgovara ishodu (razlog + naredni koraci).
+        await _claims.UpdateCustomerExplanationAsync(id, ClaimOutcomeMessages.Detail(status, cleanReason, reference));
 
         return Ok(new { status = status.ToString() });
     }

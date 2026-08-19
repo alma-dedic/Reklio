@@ -33,9 +33,11 @@ export interface ResolveProduct {
   price: number;
 }
 
+export type ResolveStatus = 'ok' | 'not_found' | 'mismatch';
+
 export interface ResolveReceiptResult {
   documentNumber: string | null;
-  found: boolean;
+  status: ResolveStatus;
   products: ResolveProduct[];
 }
 

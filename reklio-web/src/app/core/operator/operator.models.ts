@@ -17,6 +17,7 @@ export interface OperatorClaimAnalysis {
   damageCheck: string | null;
   policyCheck: string | null;
   riskScore: number | null;
+  riskFactors: string[] | null;
 }
 
 export interface OperatorClaimDetail {
@@ -31,6 +32,8 @@ export interface OperatorClaimDetail {
   issueDescription: string;
   analysis: OperatorClaimAnalysis | null;
   operatorExplanation: string | null;
+  recommendation: string | null;
+  customerReason: string | null;
   factors: string[];
   evidence: OperatorEvidence[];
 }

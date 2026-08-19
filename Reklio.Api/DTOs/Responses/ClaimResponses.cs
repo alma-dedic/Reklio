@@ -13,7 +13,9 @@ public record ClaimAnalysisResponse(
     string? ReceiptCheck,
     string? DamageCheck,
     string? PolicyCheck,
-    double? RiskScore);
+    double? RiskScore,
+    // Glavni faktori rizika (SHAP) — samo operateru; kupcu ide null.
+    IReadOnlyList<string>? RiskFactors = null);
 
 public record ClaimDetailResponse(
     int Id,

@@ -12,4 +12,5 @@ public record ClaimAnalysisResult(
     RagResult? Policy,
     FraudResult? Fraud,
     ReceiptValidationResult? Validation,
-    bool WarrantyExpired);
+    bool WarrantyExpired,
+    bool ProductMismatch);

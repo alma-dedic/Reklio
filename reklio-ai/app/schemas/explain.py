@@ -23,5 +23,6 @@ class ExplainRequest(BaseModel):
 
 
 class ExplainResponse(BaseModel):
-    user_text: str
-    operator_text: str
+    recommendation: str  # "approve" | "reject" — savjetodavni lean za operatera
+    operator_text: str  # obrazloženje + caveat za operatera
+    customer_reason: str  # AI draft razloga za kupca (za preporučeni smjer)

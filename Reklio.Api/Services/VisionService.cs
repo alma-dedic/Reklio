@@ -20,11 +20,13 @@ public class VisionService : IVisionService
         IReadOnlyList<string> imagePaths, CancellationToken cancellationToken = default)
     {
         VisionResult? worst = null;
+        VisionResult? any = null;
         var worstRank = -1;
 
         foreach (var path in imagePaths)
         {
             var result = await AnalyzeOneAsync(path, cancellationToken);
+            any = result;   // zadnja analizirana — nosi prepoznati tip i kad nema oštećenja
             var rank = SeverityRank(result.Severity);
             if (result.DamageConfirmed && rank > worstRank)
             {
@@ -33,7 +35,8 @@ public class VisionService : IVisionService
             }
         }
 
-        return worst ?? new VisionResult(false, "None", "None", 0, "Nema vidljivog oštećenja.");
+        // Najgore potvrđeno oštećenje; ako ga nema, zadrži tip sa slike (za provjeru poklapanja).
+        return worst ?? any ?? new VisionResult(false, "None", "None", 0, "Nema vidljivog oštećenja.", "Nepoznato");
     }
 
     private async Task<VisionResult> AnalyzeOneAsync(string filePath, CancellationToken cancellationToken)
@@ -51,7 +54,7 @@ public class VisionService : IVisionService
             ?? throw new InvalidOperationException("Prazan vision odgovor.");
 
         return new VisionResult(
-            dto.DamageConfirmed, dto.DamageType, dto.Severity, dto.Confidence, dto.Description);
+            dto.DamageConfirmed, dto.DamageType, dto.Severity, dto.Confidence, dto.Description, dto.ProductType);
     }
 
     private static int SeverityRank(string severity) => severity switch

@@ -3,7 +3,6 @@
   <aside class="op-list">
     <div class="op-list__head">
       <span>Eskalirano ({{ claims().length }})</span>
-      <span class="op-list__sort">Rizik ▾</span>
     </div>
 
     @if (loadingList()) {
@@ -16,10 +15,9 @@
                 (click)="select(c.id)">
           <div class="op-row__top">
             <span class="op-row__ref mono">{{ c.reference }}</span>
-            <span class="op-risk" [class]="riskClass(c.riskScore)">{{ riskLabel(c.riskScore) }}</span>
+            <span class="op-row__time">{{ timeAgo(c.submittedAt) }}</span>
           </div>
           <div class="op-row__product">{{ c.productName }}</div>
-          <div class="op-row__time">{{ timeAgo(c.submittedAt) }}</div>
         </button>
       }
     }
@@ -33,12 +31,11 @@
           <div class="op-detail__ref mono">{{ d.reference }}</div>
           <h1 class="op-detail__title">{{ d.productName }}</h1>
         </div>
-        <span class="op-risk op-risk--pill" [class]="riskClass(d.analysis?.riskScore)">
-          Rizik: {{ riskLabel(d.analysis?.riskScore ?? null) }}
-        </span>
       </header>
 
-      <div class="op-customer">{{ d.customerName }} · {{ d.customerEmail }}</div>
+      <div class="op-customer">
+        {{ d.customerName }} · {{ d.customerEmail }} · {{ d.submittedAt | date: 'dd.MM.yyyy. HH:mm' }}
+      </div>
 
       <div class="op-section">
         <div class="op-label">Opis problema (kupac)</div>
@@ -46,8 +43,9 @@
       </div>
 
       @if (d.analysis; as a) {
-        <div class="op-section op-analysis">
-          @if (d.evidence.length) {
+        @if (d.evidence.length) {
+          <div class="op-section">
+            <div class="op-label">Dokazi</div>
             <div class="op-images">
               @for (ev of d.evidence; track ev.id) {
                 @if (evidenceUrl(ev.id); as url) {
@@ -57,47 +55,63 @@
                 }
               }
             </div>
-          }
-          <div class="op-findings">
-            @if (a.damageCheck) { <div><b>Oštećenje:</b> {{ a.damageCheck }}</div> }
-            @if (a.receiptCheck) { <div><b>Dokaz kupovine:</b> {{ a.receiptCheck }}</div> }
-          </div>
-        </div>
-
-        @if (a.policyCheck) {
-          <div class="op-section op-rag">
-            <div class="op-label">RAG nalaz</div>
-            <p>{{ a.policyCheck }}</p>
           </div>
         }
 
         <div class="op-section">
-          <div class="op-risk-row">
-            <span class="op-label">Rizik od zloupotrebe (XGBoost)</span>
-            <span class="op-risk-val" [class]="riskClass(a.riskScore)">{{ formatRisk(a.riskScore) }}</span>
-          </div>
-          @if (d.factors.length) {
-            <div class="op-reason">
-              <span class="op-reason__label">Razlog eskalacije:</span>
-              <ul>
-                @for (f of d.factors; track f) { <li>{{ f }}</li> }
-              </ul>
+          <div class="op-label">AI analiza</div>
+          <div class="op-signals">
+            @if (a.receiptCheck) {
+              <div class="op-signal">
+                <span class="op-signal__k">Dokaz kupovine</span>
+                <span class="op-signal__v">{{ a.receiptCheck }}</span>
+              </div>
+            }
+            @if (a.damageCheck) {
+              <div class="op-signal">
+                <span class="op-signal__k">Oštećenje na slici</span>
+                <span class="op-signal__v">{{ a.damageCheck }}</span>
+              </div>
+            }
+            @if (a.policyCheck) {
+              <div class="op-signal">
+                <span class="op-signal__k">Pravilnik</span>
+                <span class="op-signal__v">{{ a.policyCheck }}</span>
+              </div>
+            }
+            <div class="op-signal">
+              <span class="op-signal__k">Rizik zloupotrebe</span>
+              <span class="op-signal__v">{{ formatRisk(a.riskScore) }}{{ riskFactorsText(a.riskFactors) }}</span>
             </div>
-          }
+          </div>
         </div>
+
+        @if (d.factors.length) {
+          <div class="op-why">
+            <div class="op-why__label">Zašto je na pregledu</div>
+            <ul>
+              @for (f of d.factors; track f) { <li>{{ f }}</li> }
+            </ul>
+          </div>
+        }
       }
 
       @if (d.operatorExplanation) {
         <div class="op-reco">
-          <b>AI preporuka:</b> {{ d.operatorExplanation }}
+          <span class="op-reco__label">AI preporuka</span>
+          <p>{{ d.operatorExplanation }}</p>
         </div>
       }
 
       <div class="op-actions">
-        <button type="button" class="op-btn op-btn--reject" [disabled]="processing()" (click)="askReject()">
+        <button type="button" class="op-btn op-btn--reject"
+                [class.op-btn--rec]="d.recommendation === 'reject'"
+                [disabled]="processing()" (click)="askReject()">
           Odbij
         </button>
-        <button type="button" class="op-btn op-btn--approve" [disabled]="processing()" (click)="askApprove()">
+        <button type="button" class="op-btn op-btn--approve"
+                [class.op-btn--rec]="d.recommendation === 'approve'"
+                [disabled]="processing()" (click)="askApprove()">
           Odobri
         </button>
       </div>
@@ -116,7 +130,11 @@
     [confirmText]="confirmAction() === 'approve' ? 'Odobri' : 'Odbij'"
     cancelText="Otkaži"
     [danger]="confirmAction() === 'reject'"
-    (confirmed)="onConfirm()"
+    [showReason]="true"
+    [reasonRequired]="confirmAction() === 'reject'"
+    [reasonLabel]="confirmAction() === 'reject' ? 'Razlog odbijanja (ide kupcu)' : 'Obrazloženje kupcu'"
+    [initialReason]="reasonPrefill()"
+    (confirmed)="onConfirm($event)"
     (cancelled)="cancelConfirm()"
   />
 }

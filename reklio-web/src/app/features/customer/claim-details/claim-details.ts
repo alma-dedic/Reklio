@@ -65,6 +65,11 @@ export class ClaimDetails implements OnDestroy {
     return status ? claimStatusLabel(status) : '';
   }
 
+  protected isRejected(): boolean {
+    const s = this.claim()?.status;
+    return s === 'AutoRejected' || s === 'OperatorRejected';
+  }
+
   // Stanje koraka (1-bazirano) iz stvarnog statusa reklamacije.
   protected stepState(step: number): 'done' | 'active' | 'pending' {
     const s = this.claim()?.status;
