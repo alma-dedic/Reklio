@@ -1,10 +1,10 @@
 <div class="screen">
   <div class="card wizard">
     <h1 class="screen-title">Nova reklamacija</h1>
-    <p class="screen-sub">Korak {{ step() }} od {{ steps.length }}</p>
+    <p class="screen-sub">Korak {{ step() }} od {{ steps().length }}</p>
 
     <div class="stepper">
-      @for (label of steps; track label; let i = $index) {
+      @for (label of steps(); track label; let i = $index) {
         @if (i > 0) {
           <span class="stepper__line" [class.stepper__line--done]="step() > i"></span>
         }
@@ -16,7 +16,7 @@
     </div>
 
     <div class="panel">
-      @if (step() === 1) {
+      @if (currentStep() === stepPurchase) {
         <h2 class="panel__title">Vrsta kupovine</h2>
         <p class="panel__sub">Odaberite kako ste kupili proizvod.</p>
 
@@ -92,9 +92,15 @@
         }
       }
 
-      @if (step() === 2) {
+      @if (currentStep() === stepPhotos) {
         <h2 class="panel__title">Fotografije proizvoda</h2>
-        <p class="panel__sub">Dodajte do {{ maxPhotos }} fotografije koje jasno prikazuju problem.</p>
+        @if (form.controls.issueType.value === issueOther) {
+          <p class="panel__sub">
+            Fotografije su opcione — dodajte ih ako pomažu da se problem razumije (do {{ maxPhotos }}).
+          </p>
+        } @else {
+          <p class="panel__sub">Dodajte do {{ maxPhotos }} fotografije koje jasno prikazuju oštećenje.</p>
+        }
 
         <label class="drop">
           <input type="file" accept="image/*" multiple hidden (change)="onPhotosSelected($event)" />
@@ -120,16 +126,16 @@
         }
       }
 
-      @if (step() === 3) {
+      @if (currentStep() === stepIssue) {
         <h2 class="panel__title">Opis problema</h2>
         <p class="panel__sub">Pomozite nam da razumijemo šta nije u redu.</p>
 
         <label class="field">
           <span class="field__label">Vrsta problema</span>
           <select class="field__input" [formControl]="form.controls.issueType">
-            <option>Fizičko oštećenje</option>
-            <option>Proizvod ne radi / kvar</option>
-            <option>Ostalo</option>
+            <option [value]="issuePhysical">{{ issuePhysical }}</option>
+            <option [value]="issueMalfunction">{{ issueMalfunction }}</option>
+            <option [value]="issueOther">{{ issueOther }}</option>
           </select>
         </label>
 
@@ -144,7 +150,7 @@
         </label>
       }
 
-      @if (step() === 4) {
+      @if (currentStep() === stepReview) {
         <h2 class="panel__title">Pregled i potvrda</h2>
         <p class="panel__sub">Provjerite podatke prije slanja.</p>
 
@@ -161,10 +167,12 @@
             <span>Proizvod</span>
             <strong>{{ selectedProduct()?.productName ?? 'Nije pronađen' }}</strong>
           </div>
-          <div class="summary__row">
-            <span>Fotografije</span>
-            <strong>{{ photoFiles().length }} dodane</strong>
-          </div>
+          @if (form.controls.issueType.value !== issueMalfunction) {
+            <div class="summary__row">
+              <span>Fotografije</span>
+              <strong>{{ photoFiles().length }} dodane</strong>
+            </div>
+          }
           <div class="summary__row">
             <span>Vrsta problema</span>
             <strong>{{ form.controls.issueType.value }}</strong>

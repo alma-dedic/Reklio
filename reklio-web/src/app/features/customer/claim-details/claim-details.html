@@ -61,15 +61,16 @@
         <span>AI analiza</span>
       </div>
 
-      <!-- AI nalazi ne postoje dok pipeline ne bude implementiran (EPIC 5-9). -->
       <div class="analysis__row">
         <span>Dokaz kupovine</span>
         <span class="analysis__pending">{{ c.analysis?.receiptCheck ?? 'Provjera u toku...' }}</span>
       </div>
-      <div class="analysis__row">
-        <span>Fotografija oštećenja</span>
-        <span class="analysis__pending">{{ c.analysis?.damageCheck ?? 'Provjera u toku...' }}</span>
-      </div>
+      @if (!c.analysis || c.analysis.damageCheck) {
+        <div class="analysis__row">
+          <span>Fotografija oštećenja</span>
+          <span class="analysis__pending">{{ c.analysis?.damageCheck ?? 'Provjera u toku...' }}</span>
+        </div>
+      }
       <div class="analysis__row analysis__row--last">
         <span>Provjera pravilnika</span>
         <span class="analysis__pending">{{ c.analysis?.policyCheck ?? 'Provjera u toku...' }}</span>

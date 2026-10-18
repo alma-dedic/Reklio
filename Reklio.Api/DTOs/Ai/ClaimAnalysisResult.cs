@@ -13,4 +13,6 @@ public record ClaimAnalysisResult(
     FraudResult? Fraud,
     ReceiptValidationResult? Validation,
     bool WarrantyExpired,
-    bool ProductMismatch);
+    bool ProductMismatch,
+    // Tip problema (IssueTypes) — gate po njemu bira strategiju provjere.
+    string IssueType);

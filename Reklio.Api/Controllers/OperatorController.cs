@@ -149,7 +149,7 @@ public class OperatorController : ControllerBase
         var reference = Reference(claim);
         var cleanReason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
 
-        await _claims.ResolveByOperatorAsync(id, operatorId, status);
+        await _claims.ResolveByOperatorAsync(id, operatorId, status, AgreedWithAi(claim, status));
         await _notifications.CreateAsync(new Notification
         {
             UserId = claim.UserId,
@@ -159,9 +159,30 @@ public class OperatorController : ControllerBase
         });
 
         // Osvježi korisničko objašnjenje da odgovara ishodu (razlog + naredni koraci).
-        await _claims.UpdateCustomerExplanationAsync(id, ClaimOutcomeMessages.Detail(status, cleanReason, reference));
+        await _claims.UpdateCustomerExplanationAsync(
+            id, ClaimOutcomeMessages.Detail(status, cleanReason, reference, claim.IssueType));
 
         return Ok(new { status = status.ToString() });
+    }
+
+    // Poklapa li se operaterova odluka sa AI preporukom iz snapshota.
+    // null = preporuke nije bilo (LLM nije uspio ili je odluka bila automatska).
+    private static bool? AgreedWithAi(Claim claim, ClaimStatus status)
+    {
+        if (string.IsNullOrWhiteSpace(claim.AnalysisJson))
+        {
+            return null;
+        }
+
+        var recommendation = JsonSerializer
+            .Deserialize<ClaimAnalysisSnapshot>(claim.AnalysisJson)?.Recommendation;
+
+        return recommendation switch
+        {
+            "approve" => status == ClaimStatus.OperatorApproved,
+            "reject" => status == ClaimStatus.OperatorRejected,
+            _ => null,
+        };
     }
 
     private static string Reference(Claim claim) =>

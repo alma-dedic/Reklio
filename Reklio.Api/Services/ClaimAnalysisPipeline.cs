@@ -105,7 +105,8 @@ public class ClaimAnalysisPipeline
             && !string.Equals(vision.ProductType, CatalogSeed.TypeFor(product), StringComparison.OrdinalIgnoreCase);
 
         var signals = new ClaimAnalysisResult(
-            claimId, null, vision, policy, fraud, validation, warrantyExpired, productMismatch);
+            claimId, null, vision, policy, fraud, validation, warrantyExpired, productMismatch,
+            claim.IssueType);
 
         // 7. Deterministička odluka.
         var decision = _gate.Evaluate(signals);
@@ -122,7 +123,7 @@ public class ClaimAnalysisPipeline
         var reason = decision.Status == ClaimStatus.AutoRejected
             ? ClaimOutcomeMessages.ReasonForCode(decision.ReasonCode)
             : null;
-        var customerText = ClaimOutcomeMessages.Detail(decision.Status, reason, reference);
+        var customerText = ClaimOutcomeMessages.Detail(decision.Status, reason, reference, claim.IssueType);
 
         // Kratka notifikacija — deterministička, ne zavisi od LLM-a.
         await _notifications.CreateAsync(new Notification

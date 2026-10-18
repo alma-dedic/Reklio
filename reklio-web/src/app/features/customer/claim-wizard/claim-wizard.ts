@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ClaimsService } from '../../../core/claims/claims.service';
@@ -10,8 +10,16 @@ import {
 } from '../../../core/claims/claim.models';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
-const STEP_LABELS = ['Kupovina', 'Fotografije', 'Opis', 'Pregled'];
+const STEP_PURCHASE = 'Kupovina';
+const STEP_ISSUE = 'Opis';
+const STEP_PHOTOS = 'Fotografije';
+const STEP_REVIEW = 'Pregled';
 const MAX_PHOTOS = 3;
+
+// Kanonske vrijednosti — moraju se poklapati sa IssueTypes.cs na backendu.
+const ISSUE_PHYSICAL = 'Fizičko oštećenje';
+const ISSUE_MALFUNCTION = 'Proizvod ne radi / kvar';
+const ISSUE_OTHER = 'Ostalo';
 
 @Component({
   selector: 'app-claim-wizard',
@@ -24,8 +32,14 @@ export class ClaimWizard {
   private readonly claims = inject(ClaimsService);
   private readonly router = inject(Router);
 
-  protected readonly steps = STEP_LABELS;
   protected readonly maxPhotos = MAX_PHOTOS;
+  protected readonly stepPurchase = STEP_PURCHASE;
+  protected readonly stepIssue = STEP_ISSUE;
+  protected readonly stepPhotos = STEP_PHOTOS;
+  protected readonly stepReview = STEP_REVIEW;
+  protected readonly issuePhysical = ISSUE_PHYSICAL;
+  protected readonly issueMalfunction = ISSUE_MALFUNCTION;
+  protected readonly issueOther = ISSUE_OTHER;
   protected readonly step = signal(1);
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -42,7 +56,7 @@ export class ClaimWizard {
 
   protected readonly form = this.fb.nonNullable.group({
     documentNumber: [''],
-    issueType: ['Fizičko oštećenje', [Validators.required]],
+    issueType: [ISSUE_PHYSICAL, [Validators.required]],
     issueDescription: ['', [Validators.required, Validators.minLength(10)]],
   });
 
@@ -52,7 +66,15 @@ export class ClaimWizard {
     initialValue: this.form.getRawValue(),
   });
 
-  protected readonly isLastStep = computed(() => this.step() === STEP_LABELS.length);
+  // Kvar se ne dokazuje slikom (proizvod izgleda ispravno) → korak fotografija otpada.
+  protected readonly steps = computed(() =>
+    this.formValue().issueType === ISSUE_MALFUNCTION
+      ? [STEP_PURCHASE, STEP_ISSUE, STEP_REVIEW]
+      : [STEP_PURCHASE, STEP_ISSUE, STEP_PHOTOS, STEP_REVIEW],
+  );
+
+  protected readonly currentStep = computed(() => this.steps()[this.step() - 1] ?? STEP_REVIEW);
+  protected readonly isLastStep = computed(() => this.step() === this.steps().length);
 
   // Ima dovoljno unosa da se pokrene provjera računa (slika ili broj).
   protected readonly canResolve = computed(() => {
@@ -71,18 +93,30 @@ export class ClaimWizard {
 
   protected readonly canGoNext = computed(() => {
     const value = this.formValue();
-    switch (this.step()) {
-      case 1:
+    switch (this.currentStep()) {
+      case STEP_PURCHASE:
         // Mora biti izabran proizvod (pronađena kupovina). Bez kupovine → ne može dalje.
         return this.selectedPurchaseId() !== null;
-      case 2:
-        return this.photoFiles().length > 0;
-      case 3:
+      case STEP_ISSUE:
         return (value.issueDescription ?? '').trim().length >= 10;
+      case STEP_PHOTOS:
+        // Fizičko oštećenje se dokazuje slikom; kod "Ostalo" su fotografije opcione.
+        return value.issueType === ISSUE_PHYSICAL ? this.photoFiles().length > 0 : true;
       default:
         return true;
     }
   });
+
+  constructor() {
+    // Prelazak na kvar uklanja već dodane fotografije — taj korak se preskače.
+    this.form.controls.issueType.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((type) => {
+        if (type === ISSUE_MALFUNCTION) {
+          this.photoFiles.set([]);
+        }
+      });
+  }
 
   protected setPurchaseType(type: PurchaseType): void {
     this.purchaseType.set(type);

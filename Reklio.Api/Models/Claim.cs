@@ -24,8 +24,12 @@ public class Claim
     // Popunjava pipeline/operater kasnije.
     public string? AiExplanation { get; set; }
 
-    // Snapshot AI nalaza za ekran detalja 
+    // Snapshot AI nalaza za ekran detalja
     public string? AnalysisJson { get; set; }
+
+    // Da li se operaterova odluka poklopila sa AI preporukom (null = nije bilo preporuke
+    // ili odluku nije donio operater). Mjeri koliko se operater oslanja na AI.
+    public bool? OperatorAgreedWithAi { get; set; }
 
     public DateTime SubmittedAt { get; set; }
 

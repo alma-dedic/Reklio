@@ -1,4 +1,5 @@
 using Reklio.Api.DTOs.Ai;
+using Reklio.Api.Models;
 using Reklio.Api.Services.Interfaces;
 
 namespace Reklio.Api.Services;
@@ -18,6 +19,11 @@ public class DecisionGate : IDecisionGate
         var policy = signals.Policy;
         var risk = signals.Fraud?.RiskScore ?? 0.0;
 
+        // Strategija provjere zavisi od tipa problema:
+        // kvar se ne vidi na slici, a "Ostalo" nije modelirano pa uvijek ide čovjeku.
+        var isMalfunction = signals.IssueType == IssueTypes.Malfunction;
+        var isOther = signals.IssueType == IssueTypes.Other;
+
         // ── 1. TVRDA ČINJENICA → AUTO-ODBIJ (čist datumski proračun, bez AI-a) ──
         // Kupovina je razriješena i validirana pri unosu (Submit/resolve to nameću),
         // pa je ovdje uvijek prisutna — jedino tvrdo odbijanje je istekla garancija.
@@ -29,10 +35,15 @@ public class DecisionGate : IDecisionGate
         }
 
         // ── 2. ČIST SLUČAJ + NIZAK RIZIK → AUTO-ODOBRI (svi uslovi moraju vrijediti) ──
-        if (risk < RiskThreshold
-            && vision is { DamageConfirmed: true }
-            && policy is { Covered: true }
-            && !signals.ProductMismatch)
+        // Kod kvara nema vizuelne potvrde (proizvod izgleda ispravno) — odlučuju
+        // razriješena kupovina, važeća garancija, pokrivenost i rizik.
+        var visualOk = isMalfunction
+            || (vision is { DamageConfirmed: true } && !signals.ProductMismatch);
+
+        if (!isOther
+            && risk < RiskThreshold
+            && visualOk
+            && policy is { Covered: true })
         {
             return DecisionResult.Approved();
         }
@@ -45,7 +56,13 @@ public class DecisionGate : IDecisionGate
             factors.Add($"Visok rizik (score {risk:0.0000} ≥ prag {RiskThreshold:0.0000}).");
         }
 
-        if (vision is null || !vision.DamageConfirmed)
+        if (isOther)
+        {
+            factors.Add("Tip problema \"Ostalo\" — slučaj nije modeliran, potrebna ljudska trijaža.");
+        }
+        // Kod kvara odsustvo vidljivog oštećenja NIJE razlog za sumnju (proizvod izgleda
+        // ispravno) — zato se taj faktor dodaje samo kad se oštećenje očekuje na slici.
+        else if (!isMalfunction && (vision is null || !vision.DamageConfirmed))
         {
             factors.Add("Oštećenje nije potvrđeno na fotografiji.");
         }

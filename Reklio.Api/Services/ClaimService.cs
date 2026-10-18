@@ -68,7 +68,8 @@ public class ClaimService : IClaimService
             .ToListAsync();
     }
 
-    public async Task ResolveByOperatorAsync(int claimId, string operatorId, ClaimStatus newStatus)
+    public async Task ResolveByOperatorAsync(
+        int claimId, string operatorId, ClaimStatus newStatus, bool? agreedWithAi = null)
     {
         var claim = await _db.Claims.FindAsync(claimId)
             ?? throw new KeyNotFoundException($"Reklamacija {claimId} ne postoji.");
@@ -81,6 +82,7 @@ public class ClaimService : IClaimService
 
         claim.OperatorId = operatorId;
         claim.Status = newStatus;
+        claim.OperatorAgreedWithAi = agreedWithAi;
         await _db.SaveChangesAsync();
     }
 

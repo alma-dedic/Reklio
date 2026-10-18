@@ -134,6 +134,7 @@
     [reasonRequired]="confirmAction() === 'reject'"
     [reasonLabel]="confirmAction() === 'reject' ? 'Razlog odbijanja (ide kupcu)' : 'Obrazloženje kupcu'"
     [initialReason]="reasonPrefill()"
+    [reasonHint]="reasonPrefill() ? 'Prijedlog AI-a — provjerite i po potrebi izmijenite prije slanja kupcu.' : ''"
     (confirmed)="onConfirm($event)"
     (cancelled)="cancelConfirm()"
   />

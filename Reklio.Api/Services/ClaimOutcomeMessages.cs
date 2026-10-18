@@ -7,14 +7,16 @@ namespace Reklio.Api.Services;
 // da kupčeva poruka bude dosljedna bez obzira ko je odlučio.
 public static class ClaimOutcomeMessages
 {
-    // Puno obrazloženje za ekran detalja.
-    public static string Detail(ClaimStatus status, string? reason, string reference) => status switch
+    // Puno obrazloženje za ekran detalja. Kod kvara je naredni korak provjera u servisu.
+    public static string Detail(
+        ClaimStatus status, string? reason, string reference, string? issueType = null) => status switch
     {
         ClaimStatus.AutoApproved or ClaimStatus.OperatorApproved =>
-            string.IsNullOrWhiteSpace(reason)
-                ? $"Vaša reklamacija je prihvaćena. Sačuvajte broj {reference} za dalji postupak."
-                : $"Vaša reklamacija je prihvaćena. Razlog: {EnsurePeriod(reason)} " +
-                  $"Sačuvajte broj {reference} za dalji postupak.",
+            "Vaša reklamacija je prihvaćena."
+            + (string.IsNullOrWhiteSpace(reason) ? string.Empty : $" Razlog: {EnsurePeriod(reason)}")
+            + (issueType == IssueTypes.Malfunction
+                ? $" Sa brojem {reference} i računom dođite u ovlašteni servis radi provjere kvara."
+                : $" Sačuvajte broj {reference} za dalji postupak."),
         ClaimStatus.AutoRejected or ClaimStatus.OperatorRejected =>
             $"Reklamacija je odbijena. Razlog: {EnsurePeriod(reason)} " +
             "Ako se ne slažete, možete uložiti prigovor putem korisničke podrške.",

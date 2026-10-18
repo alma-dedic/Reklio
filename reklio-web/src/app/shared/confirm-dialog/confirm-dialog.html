@@ -15,6 +15,9 @@
         <span class="cd-reason__label">{{ reasonLabel() }}</span>
         <textarea class="cd-reason__input" rows="3" placeholder="Unesite razlog..."
                   [ngModel]="reason()" (ngModelChange)="reason.set($event)"></textarea>
+        @if (reasonHint()) {
+          <span class="cd-reason__hint">{{ reasonHint() }}</span>
+        }
       </label>
     }
     <div class="cd-actions">

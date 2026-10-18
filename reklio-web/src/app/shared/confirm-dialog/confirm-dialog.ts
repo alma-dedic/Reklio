@@ -19,6 +19,7 @@ export class ConfirmDialog {
   readonly reasonLabel = input('Razlog');
   readonly reasonRequired = input(false);
   readonly initialReason = input('');
+  readonly reasonHint = input('');
 
   // Krene od prefill-a (npr. AI draft razloga), ali operater može prepisati.
   protected readonly reason = linkedSignal(() => this.initialReason());

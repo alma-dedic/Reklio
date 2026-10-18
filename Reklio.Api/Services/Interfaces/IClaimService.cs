@@ -18,7 +18,8 @@ public interface IClaimService
     Task<IReadOnlyList<Claim>> GetEscalatedAsync();
 
     // Operaterska odluka: Escalated → OperatorApproved/Rejected + upiše operatera.
-    Task ResolveByOperatorAsync(int claimId, string operatorId, ClaimStatus newStatus);
+    Task ResolveByOperatorAsync(
+        int claimId, string operatorId, ClaimStatus newStatus, bool? agreedWithAi = null);
 
     // Mijenja status uz provjeru state machine-a (T2.3). Baca ako je prelaz nevalidan.
     Task UpdateStatusAsync(int claimId, ClaimStatus newStatus);

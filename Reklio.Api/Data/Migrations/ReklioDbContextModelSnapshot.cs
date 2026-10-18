@@ -112,6 +112,9 @@ namespace Reklio.Api.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool?>("OperatorAgreedWithAi")
+                        .HasColumnType("bit");
+
                     b.Property<string>("OperatorId")
                         .HasColumnType("nvarchar(450)");
 
