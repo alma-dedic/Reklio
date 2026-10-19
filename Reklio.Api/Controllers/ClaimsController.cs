@@ -2,6 +2,8 @@ using System.Text.Json;
 using ClaimTypes = System.Security.Claims.ClaimTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 using Reklio.Api.BackgroundJobs;
 using Reklio.Api.DTOs.Ai;
 using Reklio.Api.DTOs.Requests;
@@ -26,6 +28,7 @@ public class ClaimsController : ControllerBase
     private readonly IClaimQueue _queue;
     private readonly IOcrService _ocr;
     private readonly IReceiptValidationService _validation;
+    private readonly IMemoryCache _cache;
 
     public ClaimsController(
         IClaimService claims,
@@ -34,7 +37,8 @@ public class ClaimsController : ControllerBase
         IFileStorageService storage,
         IClaimQueue queue,
         IOcrService ocr,
-        IReceiptValidationService validation)
+        IReceiptValidationService validation,
+        IMemoryCache cache)
     {
         _claims = claims;
         _purchases = purchases;
@@ -43,11 +47,13 @@ public class ClaimsController : ControllerBase
         _queue = queue;
         _ocr = ocr;
         _validation = validation;
+        _cache = cache;
     }
 
     // In-store: JEDINI OCR poziv. Pročita račun i odmah validira (broj + iznos + datum).
     // Pipeline poslije NE radi OCR ponovo — vjeruje ovoj validaciji.
     [HttpPost("resolve-receipt")]
+    [EnableRateLimiting("resolve")]
     public async Task<IActionResult> ResolveReceipt(IFormFile receipt, CancellationToken ct)
     {
         if (receipt is null || receipt.Length == 0)
@@ -70,6 +76,7 @@ public class ClaimsController : ControllerBase
                 ? await ProductsForAsync(ocr.DocumentNumber)
                 : [];
 
+            RememberVerified(products);
             return Ok(new ResolveReceiptResponse(ocr.DocumentNumber, StatusText(validation.Status), products));
         }
         finally
@@ -83,12 +90,37 @@ public class ClaimsController : ControllerBase
 
     // Online: lookup po ručno ukucanom broju (nema slike → nema OCR-a ni iznos/datum provjere).
     [HttpGet("resolve-purchase")]
+    [EnableRateLimiting("resolve")]
     public async Task<IActionResult> ResolvePurchase([FromQuery] string documentNumber)
     {
         var products = await ProductsForAsync(documentNumber);
         var status = products.Count > 0 ? "ok" : "not_found";
+
+        RememberVerified(products);
         return Ok(new ResolveReceiptResponse(documentNumber?.Trim(), status, products));
     }
+
+    // Veza između provjere računa i podnošenja. Razrješavanje i Submit su dva nezavisna
+    // zahtjeva, pa server pamti koje je stavke korisnik dokazao — inače bi Submit primao
+    // bilo koji PurchaseId iz baze. Pamti se samo uspješna provjera.
+    private void RememberVerified(IReadOnlyList<ResolveProductItem> products)
+    {
+        var userId = CurrentUserId();
+        if (userId is null || products.Count == 0)
+        {
+            return;
+        }
+
+        _cache.Set(
+            $"resolved:{userId}",
+            products.Select(p => p.PurchaseId).ToArray(),
+            TimeSpan.FromMinutes(30));
+    }
+
+    private bool IsVerified(string userId, int purchaseId) =>
+        _cache.TryGetValue($"resolved:{userId}", out int[]? verified)
+        && verified is not null
+        && verified.Contains(purchaseId);
 
     private async Task<List<ResolveProductItem>> ProductsForAsync(string? documentNumber)
     {
@@ -129,11 +161,26 @@ public class ClaimsController : ControllerBase
             return BadRequest(new { message = "Slika računa je obavezna za fizičku kupovinu." });
         }
 
+        // Tip problema grana odluku u gate-u, pa se ne smije prihvatiti nepoznata vrijednost.
+        if (!IssueTypes.IsValid(request.IssueType))
+        {
+            return BadRequest(new { message = "Nepoznata vrsta problema." });
+        }
+
         // Proizvod (razriješena kupovina) je obavezan — reklamacija bez nje se ne prima.
         if (request.PurchaseId is not int selectedId
             || await _purchases.GetByIdAsync(selectedId) is null)
         {
             return BadRequest(new { message = "Izaberite proizvod — kupovina nije razriješena." });
+        }
+
+        // Postojanje kupovine nije dokaz da je ovaj korisnik priložio taj račun.
+        if (!IsVerified(userId, selectedId))
+        {
+            return BadRequest(new
+            {
+                message = "Račun nije provjeren za ovu kupovinu. Priložite račun ponovo.",
+            });
         }
 
         var claim = new Claim

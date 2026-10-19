@@ -84,9 +84,14 @@ public class ClaimAnalysisPipeline
             vision = await _vision.AnalyzeDamageAsync(photos, cancellationToken);
         }
 
-        // 3. Provjera pravilnika (mek signal).
+        // 3. Provjera pravilnika (mek signal). Upit se gradi iz vizuelnog nalaza kad on
+        //    postoji — opis kupca je samoprijavljen (docs/analiza-povjerenja-ulaza.md, N4).
+        var policyQuestion = vision is { DamageConfirmed: true }
+            ? $"Fizičko oštećenje: {DamageTypeLabel(vision.DamageType)}, {SeverityLabel(vision.Severity)}"
+            : claim.IssueDescription;
+
         var query = new RagQuery(
-            Question: claim.IssueDescription,
+            Question: policyQuestion,
             ProductCategory: product?.Category,
             IssueType: claim.IssueType);
         var policy = await _rag.CheckPolicyAsync(query, cancellationToken);
@@ -160,17 +165,19 @@ public class ClaimAnalysisPipeline
         // 11. Snapshot nalaza za ekran detalja.
         await _claims.SaveAnalysisAsync(
             claimId,
-            BuildAnalysisJson(signals, decision, customerText, operatorText, recommendation, customerReasonDraft));
+            BuildAnalysisJson(
+                signals, decision, customerText, operatorText, recommendation, customerReasonDraft,
+                purchase.PurchaseType));
 
         return decision;
     }
 
     private static string BuildAnalysisJson(
         ClaimAnalysisResult signals, DecisionResult decision, string customerText, string? operatorText,
-        string? recommendation, string? customerReasonDraft)
+        string? recommendation, string? customerReasonDraft, PurchaseType channel)
     {
         var snapshot = new ClaimAnalysisSnapshot(
-            ReceiptCheck: DescribeReceipt(signals.Validation),
+            ReceiptCheck: DescribeReceipt(signals.Validation, channel),
             DamageCheck: DescribeDamage(signals.Vision),
             PolicyCheck: DescribePolicy(signals.Policy),
             PolicyDetail: DescribePolicyDetail(signals.Policy),
@@ -187,12 +194,17 @@ public class ClaimAnalysisPipeline
         return JsonSerializer.Serialize(snapshot);
     }
 
-    private static string? DescribeReceipt(ReceiptValidationResult? validation) => validation?.Status switch
-    {
-        ReceiptValidationStatus.Valid => "Validno — poklapa se s kupovinom",
-        ReceiptValidationStatus.NotFound => "Račun nije pronađen u sistemu",
-        _ => null,
-    };
+    // Online nema sliku računa, pa se iznos i datum ne provjeravaju — poruka to razlikuje.
+    private static string? DescribeReceipt(ReceiptValidationResult? validation, PurchaseType channel) =>
+        validation?.Status switch
+        {
+            ReceiptValidationStatus.Valid when channel == PurchaseType.Online =>
+                "Validno — narudžba pronađena u sistemu",
+            ReceiptValidationStatus.Valid =>
+                "Validno — broj, iznos i datum sa računa se poklapaju",
+            ReceiptValidationStatus.NotFound => "Račun nije pronađen u sistemu",
+            _ => null,
+        };
 
     private static string? DescribeDamage(VisionResult? vision)
     {
@@ -237,11 +249,37 @@ public class ClaimAnalysisPipeline
         {
             return null;
         }
+        var cited = CleanCitation(policy.CitedArticle);
         if (policy.Covered)
         {
-            return policy.CitedArticle is not null ? $"Pokriveno ({policy.CitedArticle})" : "Pokriveno";
+            return cited is not null ? $"Pokriveno ({cited})" : "Pokriveno";
         }
         return "Pokrivenost nije jednoznačna";
+    }
+
+    // RAG citira u obliku "02_garantni_rokovi_kategorije.md — Član 2"; naziv datoteke
+    // ne treba ni kupcu ni operateru, pa se pretvara u čitljiv naslov.
+    private static string? CleanCitation(string? cited)
+    {
+        if (string.IsNullOrWhiteSpace(cited))
+        {
+            return null;
+        }
+
+        var parts = cited.Split('—', 2, StringSplitOptions.TrimEntries);
+        if (parts.Length < 2)
+        {
+            return cited.Trim();
+        }
+
+        var source = Path.GetFileNameWithoutExtension(parts[0]).Replace('_', ' ').Trim();
+        source = string.Concat(source.SkipWhile(c => char.IsDigit(c) || c == ' '));
+        if (source.Length > 0)
+        {
+            source = char.ToUpperInvariant(source[0]) + source[1..];
+        }
+
+        return source.Length > 0 ? $"{source} — {parts[1]}" : parts[1];
     }
 
     // Operateru: pokriveno + član + mogući izuzetak + obrazloženje RAG-a (zašto).
@@ -252,10 +290,11 @@ public class ClaimAnalysisPipeline
             return null;
         }
 
+        var cited = CleanCitation(policy.CitedArticle);
         var parts = new List<string>
         {
             policy.Covered
-                ? (policy.CitedArticle is not null ? $"Pokriveno ({policy.CitedArticle})" : "Pokriveno")
+                ? (cited is not null ? $"Pokriveno ({cited})" : "Pokriveno")
                 : "Pokrivenost nije jednoznačna",
         };
 

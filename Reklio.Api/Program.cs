@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +16,22 @@ using Reklio.Api.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+
+// Razrješavanje računa vraća stavke za proizvoljan broj računa, pa se učestalost
+// ograničava da se brojevi ne mogu pretraživati u nizu.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("resolve", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anon",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+            }));
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -167,6 +185,9 @@ app.UseCors(devCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Poslije autentikacije — ograničenje se dijeli po korisniku.
+app.UseRateLimiter();
 
 app.MapControllers();
 
